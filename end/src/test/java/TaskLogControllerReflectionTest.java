@@ -11,35 +11,32 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SysUserControllerReflectionTest {
+class TaskLogControllerReflectionTest {
 
     @Test
     void addShouldDelegateToService() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(1L, "alice");
-        handler.addResult = user;
+        Object taskLog = newTaskLog(1, "first log");
+        handler.addResult = taskLog;
         Object controller = newController(newService(handler));
 
-        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.TaskLog")}, taskLog);
 
         assertEquals("add", handler.lastMethodName);
-        assertSame(user, handler.lastArgs[0]);
+        assertSame(taskLog, handler.lastArgs[0]);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertSame(user, invokeGetter(result, "getData"));
+        assertSame(taskLog, invokeGetter(result, "getData"));
     }
 
     @Test
-    void deleteByIdShouldDelegateToService() throws Exception {
+    void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
         Object controller = newController(newService(handler));
 
-        Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
+        Object result = invoke(controller, "deleteById", new Class<?>[]{Integer.class}, 1);
 
-        assertEquals("deleteById", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
         assertTrue((Boolean) invokeGetter(result, "getData"));
     }
 
@@ -48,67 +45,62 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         handler.updateResult = false;
         Object controller = newController(newService(handler));
-        Object user = newUser(2L, "bob");
+        Object taskLog = newTaskLog(2, "second log");
 
-        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskLog")}, taskLog);
 
-        assertEquals("updateById", handler.lastMethodName);
         assertEquals(404, invokeGetter(result, "getCode"));
-        assertEquals("user not found", invokeGetter(result, "getMessage"));
+        assertEquals("task log not found", invokeGetter(result, "getMessage"));
         assertNull(invokeGetter(result, "getData"));
     }
 
     @Test
-    void getByIdShouldDelegateToService() throws Exception {
+    void getByIdShouldReturnWrappedTaskLog() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(3L, "carol");
-        handler.getByIdResult = user;
+        Object taskLog = newTaskLog(3, "third log");
+        handler.getByIdResult = taskLog;
         Object controller = newController(newService(handler));
 
-        Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
+        Object result = invoke(controller, "getById", new Class<?>[]{Integer.class}, 3);
 
-        assertEquals("getById", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertSame(user, invokeGetter(result, "getData"));
+        assertSame(taskLog, invokeGetter(result, "getData"));
     }
 
     @Test
-    void getAllShouldDelegateToService() throws Exception {
+    void getAllShouldReturnWrappedList() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> users = List.of(newUser(1L, "alice"), newUser(2L, "bob"));
-        handler.getAllResult = users;
+        List<Object> taskLogs = List.of(newTaskLog(1, "a"), newTaskLog(2, "b"));
+        handler.getAllResult = taskLogs;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
-        assertEquals("getAll", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertEquals(users, invokeGetter(result, "getData"));
+        assertEquals(taskLogs, invokeGetter(result, "getData"));
     }
 
     private Object newController(Object service) throws Exception {
-        Class<?> controllerClass = Class.forName("com.example.end.controller.SysUserController");
-        Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> controllerClass = Class.forName("com.example.end.controller.TaskLogController");
+        Class<?> serviceClass = Class.forName("com.example.end.service.TaskLogService");
         Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
         return constructor.newInstance(service);
     }
 
     private Object newService(Recorder handler) throws Exception {
-        Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> serviceClass = Class.forName("com.example.end.service.TaskLogService");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
     }
 
-    private Object newUser(Long id, String username) throws Exception {
-        Class<?> userClass = Class.forName("com.example.end.pojo.SysUser");
-        Object user = userClass.getConstructor().newInstance();
-        invoke(user, "setId", new Class<?>[]{Long.class}, id);
-        invoke(user, "setUsername", new Class<?>[]{String.class}, username);
-        invoke(user, "setPassword", new Class<?>[]{String.class}, "123456");
-        invoke(user, "setRealName", new Class<?>[]{String.class}, "Test User");
-        invoke(user, "setRole", new Class<?>[]{Integer.class}, 1);
-        return user;
+    private Object newTaskLog(Integer id, String content) throws Exception {
+        Class<?> taskLogClass = Class.forName("com.example.end.pojo.TaskLog");
+        Object taskLog = taskLogClass.getConstructor().newInstance();
+        invoke(taskLog, "setId", new Class<?>[]{Integer.class}, id);
+        invoke(taskLog, "setOperatorId", new Class<?>[]{Long.class}, 1L);
+        invoke(taskLog, "setTaskId", new Class<?>[]{Long.class}, 1L);
+        invoke(taskLog, "setProgressPercent", new Class<?>[]{Integer.class}, 50);
+        invoke(taskLog, "setContent", new Class<?>[]{String.class}, content);
+        return taskLog;
     }
 
     private Object invoke(Object target, String methodName, Class<?>[] parameterTypes, Object... args) throws Exception {

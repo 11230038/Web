@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,35 +12,32 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SysUserControllerReflectionTest {
+class ProjectInfoControllerReflectionTest {
 
     @Test
     void addShouldDelegateToService() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(1L, "alice");
-        handler.addResult = user;
+        Object project = newProject(1L, "demo");
+        handler.addResult = project;
         Object controller = newController(newService(handler));
 
-        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.ProjectInfo")}, project);
 
         assertEquals("add", handler.lastMethodName);
-        assertSame(user, handler.lastArgs[0]);
+        assertSame(project, handler.lastArgs[0]);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertSame(user, invokeGetter(result, "getData"));
+        assertSame(project, invokeGetter(result, "getData"));
     }
 
     @Test
-    void deleteByIdShouldDelegateToService() throws Exception {
+    void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
 
-        assertEquals("deleteById", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
         assertTrue((Boolean) invokeGetter(result, "getData"));
     }
 
@@ -48,67 +46,65 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         handler.updateResult = false;
         Object controller = newController(newService(handler));
-        Object user = newUser(2L, "bob");
+        Object project = newProject(2L, "build");
 
-        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.ProjectInfo")}, project);
 
-        assertEquals("updateById", handler.lastMethodName);
         assertEquals(404, invokeGetter(result, "getCode"));
-        assertEquals("user not found", invokeGetter(result, "getMessage"));
+        assertEquals("project not found", invokeGetter(result, "getMessage"));
         assertNull(invokeGetter(result, "getData"));
     }
 
     @Test
-    void getByIdShouldDelegateToService() throws Exception {
+    void getByIdShouldReturnWrappedProject() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(3L, "carol");
-        handler.getByIdResult = user;
+        Object project = newProject(3L, "ship");
+        handler.getByIdResult = project;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
-        assertEquals("getById", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertSame(user, invokeGetter(result, "getData"));
+        assertSame(project, invokeGetter(result, "getData"));
     }
 
     @Test
-    void getAllShouldDelegateToService() throws Exception {
+    void getAllShouldReturnWrappedList() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> users = List.of(newUser(1L, "alice"), newUser(2L, "bob"));
-        handler.getAllResult = users;
+        List<Object> projects = List.of(newProject(1L, "a"), newProject(2L, "b"));
+        handler.getAllResult = projects;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
-        assertEquals("getAll", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertEquals(users, invokeGetter(result, "getData"));
+        assertEquals(projects, invokeGetter(result, "getData"));
     }
 
     private Object newController(Object service) throws Exception {
-        Class<?> controllerClass = Class.forName("com.example.end.controller.SysUserController");
-        Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> controllerClass = Class.forName("com.example.end.controller.ProjectInfoController");
+        Class<?> serviceClass = Class.forName("com.example.end.service.ProjectInfoService");
         Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
         return constructor.newInstance(service);
     }
 
     private Object newService(Recorder handler) throws Exception {
-        Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> serviceClass = Class.forName("com.example.end.service.ProjectInfoService");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
     }
 
-    private Object newUser(Long id, String username) throws Exception {
-        Class<?> userClass = Class.forName("com.example.end.pojo.SysUser");
-        Object user = userClass.getConstructor().newInstance();
-        invoke(user, "setId", new Class<?>[]{Long.class}, id);
-        invoke(user, "setUsername", new Class<?>[]{String.class}, username);
-        invoke(user, "setPassword", new Class<?>[]{String.class}, "123456");
-        invoke(user, "setRealName", new Class<?>[]{String.class}, "Test User");
-        invoke(user, "setRole", new Class<?>[]{Integer.class}, 1);
-        return user;
+    private Object newProject(Long id, String name) throws Exception {
+        Class<?> projectClass = Class.forName("com.example.end.pojo.ProjectInfo");
+        Object project = projectClass.getConstructor().newInstance();
+        invoke(project, "setId", new Class<?>[]{Long.class}, id);
+        invoke(project, "setOwnerId", new Class<?>[]{Long.class}, 1L);
+        invoke(project, "setName", new Class<?>[]{String.class}, name);
+        invoke(project, "setDescription", new Class<?>[]{String.class}, "desc");
+        invoke(project, "setPriority", new Class<?>[]{Integer.class}, 1);
+        invoke(project, "setStatus", new Class<?>[]{Integer.class}, 1);
+        invoke(project, "setStartDate", new Class<?>[]{LocalDate.class}, LocalDate.of(2026, 7, 8));
+        invoke(project, "setEndDate", new Class<?>[]{LocalDate.class}, LocalDate.of(2026, 7, 31));
+        return project;
     }
 
     private Object invoke(Object target, String methodName, Class<?>[] parameterTypes, Object... args) throws Exception {

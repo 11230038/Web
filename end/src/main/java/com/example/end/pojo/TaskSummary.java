@@ -5,20 +5,18 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class SysUser {
+public class TaskSummary {
     private Long id;
 
-    private String username;
+    private Long creatorId;
 
-    private String password;
+    private Long projectId;
 
-    private String realName;
+    private Integer taskId;
 
-    private Integer role;
+    private String summaryType;
 
-    private String email;
-
-    private String phone;
+    private String content;
 
     private LocalDateTime createdTime;
 

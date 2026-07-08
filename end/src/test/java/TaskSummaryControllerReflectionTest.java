@@ -11,35 +11,32 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SysUserControllerReflectionTest {
+class TaskSummaryControllerReflectionTest {
 
     @Test
     void addShouldDelegateToService() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(1L, "alice");
-        handler.addResult = user;
+        Object taskSummary = newTaskSummary(1L, "daily");
+        handler.addResult = taskSummary;
         Object controller = newController(newService(handler));
 
-        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.TaskSummary")}, taskSummary);
 
         assertEquals("add", handler.lastMethodName);
-        assertSame(user, handler.lastArgs[0]);
+        assertSame(taskSummary, handler.lastArgs[0]);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertSame(user, invokeGetter(result, "getData"));
+        assertSame(taskSummary, invokeGetter(result, "getData"));
     }
 
     @Test
-    void deleteByIdShouldDelegateToService() throws Exception {
+    void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
 
-        assertEquals("deleteById", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
         assertTrue((Boolean) invokeGetter(result, "getData"));
     }
 
@@ -48,67 +45,63 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         handler.updateResult = false;
         Object controller = newController(newService(handler));
-        Object user = newUser(2L, "bob");
+        Object taskSummary = newTaskSummary(2L, "weekly");
 
-        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskSummary")}, taskSummary);
 
-        assertEquals("updateById", handler.lastMethodName);
         assertEquals(404, invokeGetter(result, "getCode"));
-        assertEquals("user not found", invokeGetter(result, "getMessage"));
+        assertEquals("task summary not found", invokeGetter(result, "getMessage"));
         assertNull(invokeGetter(result, "getData"));
     }
 
     @Test
-    void getByIdShouldDelegateToService() throws Exception {
+    void getByIdShouldReturnWrappedTaskSummary() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(3L, "carol");
-        handler.getByIdResult = user;
+        Object taskSummary = newTaskSummary(3L, "monthly");
+        handler.getByIdResult = taskSummary;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
-        assertEquals("getById", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertSame(user, invokeGetter(result, "getData"));
+        assertSame(taskSummary, invokeGetter(result, "getData"));
     }
 
     @Test
-    void getAllShouldDelegateToService() throws Exception {
+    void getAllShouldReturnWrappedList() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> users = List.of(newUser(1L, "alice"), newUser(2L, "bob"));
-        handler.getAllResult = users;
+        List<Object> taskSummaries = List.of(newTaskSummary(1L, "a"), newTaskSummary(2L, "b"));
+        handler.getAllResult = taskSummaries;
         Object controller = newController(newService(handler));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
-        assertEquals("getAll", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals("success", invokeGetter(result, "getMessage"));
-        assertEquals(users, invokeGetter(result, "getData"));
+        assertEquals(taskSummaries, invokeGetter(result, "getData"));
     }
 
     private Object newController(Object service) throws Exception {
-        Class<?> controllerClass = Class.forName("com.example.end.controller.SysUserController");
-        Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> controllerClass = Class.forName("com.example.end.controller.TaskSummaryController");
+        Class<?> serviceClass = Class.forName("com.example.end.service.TaskSummaryService");
         Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
         return constructor.newInstance(service);
     }
 
     private Object newService(Recorder handler) throws Exception {
-        Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> serviceClass = Class.forName("com.example.end.service.TaskSummaryService");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
     }
 
-    private Object newUser(Long id, String username) throws Exception {
-        Class<?> userClass = Class.forName("com.example.end.pojo.SysUser");
-        Object user = userClass.getConstructor().newInstance();
-        invoke(user, "setId", new Class<?>[]{Long.class}, id);
-        invoke(user, "setUsername", new Class<?>[]{String.class}, username);
-        invoke(user, "setPassword", new Class<?>[]{String.class}, "123456");
-        invoke(user, "setRealName", new Class<?>[]{String.class}, "Test User");
-        invoke(user, "setRole", new Class<?>[]{Integer.class}, 1);
-        return user;
+    private Object newTaskSummary(Long id, String summaryType) throws Exception {
+        Class<?> taskSummaryClass = Class.forName("com.example.end.pojo.TaskSummary");
+        Object taskSummary = taskSummaryClass.getConstructor().newInstance();
+        invoke(taskSummary, "setId", new Class<?>[]{Long.class}, id);
+        invoke(taskSummary, "setCreatorId", new Class<?>[]{Long.class}, 1L);
+        invoke(taskSummary, "setProjectId", new Class<?>[]{Long.class}, 1L);
+        invoke(taskSummary, "setTaskId", new Class<?>[]{Integer.class}, 1);
+        invoke(taskSummary, "setSummaryType", new Class<?>[]{String.class}, summaryType);
+        invoke(taskSummary, "setContent", new Class<?>[]{String.class}, "content");
+        return taskSummary;
     }
 
     private Object invoke(Object target, String methodName, Class<?>[] parameterTypes, Object... args) throws Exception {

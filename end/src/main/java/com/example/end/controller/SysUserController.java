@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.pojo.Result;
 import com.example.end.pojo.SysUser;
 import com.example.end.service.SysUserService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,27 +25,39 @@ public class SysUserController {
     }
 
     @PostMapping
-    public SysUser add(@RequestBody SysUser sysUser) {
-        return sysUserService.add(sysUser);
+    public Result<SysUser> add(@RequestBody SysUser sysUser) {
+        return Result.success(sysUserService.add(sysUser));
     }
 
     @DeleteMapping("/{id}")
-    public boolean deleteById(@PathVariable Long id) {
-        return sysUserService.deleteById(id);
+    public Result<Boolean> deleteById(@PathVariable Long id) {
+        boolean deleted = sysUserService.deleteById(id);
+        if (!deleted) {
+            return Result.error(404, "user not found");
+        }
+        return Result.success(true);
     }
 
     @PutMapping
-    public boolean updateById(@RequestBody SysUser sysUser) {
-        return sysUserService.updateById(sysUser);
+    public Result<Boolean> updateById(@RequestBody SysUser sysUser) {
+        boolean updated = sysUserService.updateById(sysUser);
+        if (!updated) {
+            return Result.error(404, "user not found");
+        }
+        return Result.success(true);
     }
 
     @GetMapping("/{id}")
-    public SysUser getById(@PathVariable Long id) {
-        return sysUserService.getById(id);
+    public Result<SysUser> getById(@PathVariable Long id) {
+        SysUser sysUser = sysUserService.getById(id);
+        if (sysUser == null) {
+            return Result.error(404, "user not found");
+        }
+        return Result.success(sysUser);
     }
 
     @GetMapping
-    public List<SysUser> getAll() {
-        return sysUserService.getAll();
+    public Result<List<SysUser>> getAll() {
+        return Result.success(sysUserService.getAll());
     }
 }

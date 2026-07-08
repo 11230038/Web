@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,21 +14,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SysUserImplReflectionTest {
+class TaskInfoImplReflectionTest {
 
     @Test
-    void addShouldReturnInsertedUser() throws Exception {
-        Class<?> mapperClass = Class.forName("com.example.end.mapper.SysUserMapper");
+    void addShouldReturnInsertedTask() throws Exception {
         Recorder handler = new Recorder();
-        Object mapper = Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{mapperClass}, handler);
-        Object service = newService(mapper);
-        Object user = newUser(1L, "alice");
+        Object service = newService(newMapper(handler));
+        Object task = newTask(1L, "task-a");
 
-        Object result = invoke(service, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(service, "add", new Class<?>[]{Class.forName("com.example.end.pojo.TaskInfo")}, task);
 
-        assertSame(user, result);
+        assertSame(task, result);
         assertEquals("insert", handler.lastMethodName);
-        assertSame(user, handler.lastArgs[0]);
+        assertSame(task, handler.lastArgs[0]);
     }
 
     @Test
@@ -38,8 +37,6 @@ class SysUserImplReflectionTest {
 
         Object result = invoke(service, "deleteById", new Class<?>[]{Long.class}, 1L);
 
-        assertEquals("deleteById", handler.lastMethodName);
-        assertEquals(1L, handler.lastArgs[0]);
         assertTrue((Boolean) result);
     }
 
@@ -59,31 +56,28 @@ class SysUserImplReflectionTest {
         Recorder handler = new Recorder();
         handler.updateResult = 1;
         Object service = newService(newMapper(handler));
-        Object user = newUser(2L, "bob");
+        Object task = newTask(2L, "task-b");
 
-        Object result = invoke(service, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+        Object result = invoke(service, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskInfo")}, task);
 
-        assertEquals("updateById", handler.lastMethodName);
-        assertSame(user, handler.lastArgs[0]);
         assertTrue((Boolean) result);
     }
 
     @Test
     void getByIdShouldReturnMapperResult() throws Exception {
         Recorder handler = new Recorder();
-        Object user = newUser(3L, "carol");
-        handler.selectByIdResult = user;
+        Object task = newTask(3L, "task-c");
+        handler.selectByIdResult = task;
         Object service = newService(newMapper(handler));
 
         Object result = invoke(service, "getById", new Class<?>[]{Long.class}, 3L);
 
-        assertSame(user, result);
+        assertSame(task, result);
     }
 
     @Test
-    void getByIdShouldReturnNullWhenUserMissing() throws Exception {
+    void getByIdShouldReturnNullWhenTaskMissing() throws Exception {
         Recorder handler = new Recorder();
-        handler.selectByIdResult = null;
         Object service = newService(newMapper(handler));
 
         Object result = invoke(service, "getById", new Class<?>[]{Long.class}, 100L);
@@ -92,40 +86,44 @@ class SysUserImplReflectionTest {
     }
 
     @Test
-    void getAllShouldReturnAllUsers() throws Exception {
+    void getAllShouldReturnAllTasks() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> users = List.of(newUser(1L, "alice"), newUser(2L, "bob"));
-        handler.selectAllResult = users;
+        List<Object> tasks = List.of(newTask(1L, "a"), newTask(2L, "b"));
+        handler.selectAllResult = tasks;
         Object service = newService(newMapper(handler));
 
         Object result = invoke(service, "getAll", new Class<?>[0]);
 
-        assertEquals(users, result);
+        assertEquals(tasks, result);
     }
 
     private Object newService(Object mapper) throws Exception {
-        Class<?> serviceClass = Class.forName("com.example.end.service.impl.SysUserImpl");
-        Class<?> mapperClass = Class.forName("com.example.end.mapper.SysUserMapper");
+        Class<?> serviceClass = Class.forName("com.example.end.service.impl.TaskInfoImpl");
+        Class<?> mapperClass = Class.forName("com.example.end.mapper.TaskInfoMapper");
         Constructor<?> constructor = serviceClass.getConstructor(mapperClass);
         return constructor.newInstance(mapper);
     }
 
     private Object newMapper(Recorder handler) throws Exception {
-        Class<?> mapperClass = Class.forName("com.example.end.mapper.SysUserMapper");
+        Class<?> mapperClass = Class.forName("com.example.end.mapper.TaskInfoMapper");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{mapperClass}, handler);
     }
 
-    private Object newUser(Long id, String username) throws Exception {
-        Class<?> userClass = Class.forName("com.example.end.pojo.SysUser");
-        Object user = userClass.getConstructor().newInstance();
-        invoke(user, "setId", new Class<?>[]{Long.class}, id);
-        invoke(user, "setUsername", new Class<?>[]{String.class}, username);
-        invoke(user, "setPassword", new Class<?>[]{String.class}, "123456");
-        invoke(user, "setRealName", new Class<?>[]{String.class}, "Test User");
-        invoke(user, "setRole", new Class<?>[]{Integer.class}, 1);
-        invoke(user, "setEmail", new Class<?>[]{String.class}, username + "@example.com");
-        invoke(user, "setPhone", new Class<?>[]{String.class}, "13800138000");
-        return user;
+    private Object newTask(Long id, String title) throws Exception {
+        Class<?> taskClass = Class.forName("com.example.end.pojo.TaskInfo");
+        Object task = taskClass.getConstructor().newInstance();
+        invoke(task, "setId", new Class<?>[]{Long.class}, id);
+        invoke(task, "setCreatorId", new Class<?>[]{Long.class}, 1L);
+        invoke(task, "setAssigneeId", new Class<?>[]{Long.class}, 2L);
+        invoke(task, "setProjectId", new Class<?>[]{Long.class}, 1L);
+        invoke(task, "setParentId", new Class<?>[]{Long.class}, new Object[]{null});
+        invoke(task, "setTitle", new Class<?>[]{String.class}, title);
+        invoke(task, "setDescription", new Class<?>[]{String.class}, "desc");
+        invoke(task, "setPriority", new Class<?>[]{Integer.class}, 1);
+        invoke(task, "setStatus", new Class<?>[]{Integer.class}, 1);
+        invoke(task, "setDueDate", new Class<?>[]{LocalDate.class}, LocalDate.of(2026, 7, 31));
+        invoke(task, "setAiSuggestion", new Class<?>[]{String.class}, "ai");
+        return task;
     }
 
     private Object invoke(Object target, String methodName, Class<?>[] parameterTypes, Object... args) throws Exception {

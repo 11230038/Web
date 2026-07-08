@@ -62,7 +62,11 @@ public class TaskSuggestionAgentService {
                 .map(AiMemberOption::getId)
                 .collect(Collectors.toSet());
         Integer defaultAssigneeId = members.get(0).getId();
-        return taskBreakdownJsonParser.parse(content, validAssigneeIds, defaultAssigneeId);
+        TaskBreakdownResult result = taskBreakdownJsonParser.parse(content, validAssigneeIds, defaultAssigneeId);
+        if (result.getItems() == null || result.getItems().isEmpty()) {
+            return buildFallbackBreakdown(projectName, goal, description, members, defaultAssigneeId);
+        }
+        return result;
     }
 
     private List<AiMemberOption> queryMembers() {
@@ -124,5 +128,43 @@ public class TaskSuggestionAgentService {
             return normalized;
         }
         return normalized.substring(0, maxLength);
+    }
+
+    private TaskBreakdownResult buildFallbackBreakdown(
+            String projectName,
+            String goal,
+            String description,
+            List<AiMemberOption> members,
+            Integer defaultAssigneeId
+    ) {
+        TaskBreakdownItem item = new TaskBreakdownItem();
+        item.setTitle(buildFallbackTitle(projectName));
+        item.setDescription(limit(firstNonBlank(description, goal, projectName), 300));
+        item.setPriority("MEDIUM");
+        item.setSuggestedDays(3);
+        item.setAssigneeId(defaultAssigneeId);
+
+        TaskBreakdownResult result = new TaskBreakdownResult();
+        result.setSummary("AI response was empty; generated a fallback breakdown item for "
+                + firstNonBlank(projectName, "the project")
+                + " and assigned it to "
+                + members.get(0).getName()
+                + ".");
+        result.setItems(List.of(item));
+        return result;
+    }
+
+    private String buildFallbackTitle(String projectName) {
+        String normalizedProjectName = firstNonBlank(projectName, "Project");
+        return limit(normalizedProjectName + " initial delivery plan", 120);
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
     }
 }

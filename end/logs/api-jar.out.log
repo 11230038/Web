@@ -588,3 +588,186 @@ Unconditional classes:
 2026-07-08T16:39:39.564+08:00  INFO 25080 --- [           main] com.example.end.Application              : Started Application in 2.895 seconds (process running for 3.322)
 2026-07-08T16:39:39.564+08:00 DEBUG 25080 --- [           main] o.s.b.a.ApplicationAvailabilityBean      : Application availability state LivenessState changed to CORRECT
 2026-07-08T16:39:39.564+08:00 DEBUG 25080 --- [           main] o.s.b.a.ApplicationAvailabilityBean      : Application availability state ReadinessState changed to ACCEPTING_TRAFFIC
+2026-07-08T16:39:57.625+08:00  INFO 25080 --- [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-08T16:39:57.625+08:00  INFO 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-08T16:39:57.625+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected StandardServletMultipartResolver
+2026-07-08T16:39:57.625+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected AcceptHeaderLocaleResolver
+2026-07-08T16:39:57.625+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator@75217754
+2026-07-08T16:39:57.625+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.support.SessionFlashMapManager@4f4b03ff
+2026-07-08T16:39:57.625+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-07-08T16:39:57.625+08:00  INFO 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2026-07-08T16:39:57.635+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/auth/login", parameters={}
+2026-07-08T16:39:57.643+08:00 DEBUG 25080 --- [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.auth.AuthController#login(AuthLoginRequest)
+2026-07-08T16:39:57.728+08:00 DEBUG 25080 --- [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [AuthLoginRequest(username=alice, password=123456)]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@46a29e1c] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@209078232 wrapping com.mysql.cj.jdbc.ConnectionImpl@412c5e8b] will not be managed by Spring
+==>  Preparing: select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user where username = ? limit 1
+==> Parameters: alice(String)
+<==    Columns: id, username, password, real_name, role, email, phone, created_time, updated_time
+<==        Row: 1, alice, e10adc3949ba59abbe56e057f20f883e, Alice Zhang, 0, alice@example.com, 13800138001, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@46a29e1c]
+2026-07-08T16:39:57.840+08:00 DEBUG 25080 --- [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-07-08T16:39:57.843+08:00 DEBUG 25080 --- [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=AuthLoginResponse(token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9. (truncated)...]
+2026-07-08T16:39:57.864+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:39:57.875+08:00 DEBUG 25080 --- [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : GET "/projectInfos", parameters={}
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/taskLogs", parameters={}
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/taskSummaries", parameters={}
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : GET "/taskInfos", parameters={}
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : GET "/sysUsers", parameters={}
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.ProjectInfoController#getAll()
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.TaskLogController#getAll()
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.TaskSummaryController#getAll()
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-3] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.TaskInfoController#getAll()
+2026-07-08T16:39:57.877+08:00 DEBUG 25080 --- [nio-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.SysUserController#getAll()
+Creating a new SqlSession
+Creating a new SqlSession
+Creating a new SqlSession
+Creating a new SqlSession
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7b4201a7] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@12505788] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@41c5c540] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ef562b6] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2010505543 wrapping com.mysql.cj.jdbc.ConnectionImpl@b2f2419] will not be managed by Spring
+JDBC Connection [HikariProxyConnection@1813828745 wrapping com.mysql.cj.jdbc.ConnectionImpl@15bbdf4] will not be managed by Spring
+JDBC Connection [HikariProxyConnection@1768687181 wrapping com.mysql.cj.jdbc.ConnectionImpl@412c5e8b] will not be managed by Spring
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6c6ff8c2] was not registered for synchronization because synchronization is not active
+==>  Preparing: select id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time from task_info order by id desc
+==>  Preparing: select id, operator_id, task_id, progress_percent, content, created_time, updated_time from task_log order by id desc
+JDBC Connection [HikariProxyConnection@21820591 wrapping com.mysql.cj.jdbc.ConnectionImpl@24dbcd92] will not be managed by Spring
+==>  Preparing: select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user order by id desc
+==>  Preparing: select id, owner_id, name, description, priority, status, start_date, end_date, created_time, updated_time from project_info order by id desc
+==> Parameters: 
+==> Parameters: 
+JDBC Connection [HikariProxyConnection@155099594 wrapping com.mysql.cj.jdbc.ConnectionImpl@57c500b6] will not be managed by Spring
+==> Parameters: 
+==> Parameters: 
+==>  Preparing: select id, creator_id, project_id, task_id, summary_type, content, created_time, updated_time from task_summary order by id desc
+==> Parameters: 
+<==    Columns: id, username, password, real_name, role, email, phone, created_time, updated_time
+<==    Columns: id, owner_id, name, description, priority, status, start_date, end_date, created_time, updated_time
+<==    Columns: id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time
+<==        Row: 3, carol, e10adc3949ba59abbe56e057f20f883e, Carol Wang, 2, carol@example.com, 13800138003, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==    Columns: id, operator_id, task_id, progress_percent, content, created_time, updated_time
+<==        Row: 3, 3, 1, 3, null, Prepare Summary, Prepare final task summary, 0, 2, 2026-07-25, Generate weekly report draft, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 3, 3, Project Gamma, Gamma support project, 0, 2, 2026-07-10, 2026-08-10, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==    Columns: id, creator_id, project_id, task_id, summary_type, content, created_time, updated_time
+<==        Row: 3, 3, 3, 90, Completed gamma progress log, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==        Row: 2, bob, e10adc3949ba59abbe56e057f20f883e, Bob Li, 1, bob@example.com, 13800138002, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 3, 3, 3, 3, 1, Gamma final summary submitted, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 2, 2, 3, 2, 1, Implement Mapper, Implement MyBatis mapper layer, 1, 0, 2026-07-20, Add unit tests for mapper, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 2, 2, Project Beta, Beta optimization project, 1, 0, 2026-07-05, 2026-08-05, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 2, 2, 2, 60, Updated beta progress log, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==        Row: 2, 2, 2, 2, 0, Beta weekly summary updated, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 1, alice, e10adc3949ba59abbe56e057f20f883e, Alice Zhang, 0, alice@example.com, 13800138001, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 1, 1, Project Alpha, Alpha delivery project, 2, 1, 2026-07-01, 2026-07-31, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 1, 1, 1, 30, Initialized project alpha log, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==      Total: 3
+<==        Row: 1, 1, 1, 1, 0, Alpha daily summary created, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==      Total: 3
+<==      Total: 3
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@12505788]
+<==      Total: 3
+<==        Row: 1, 1, 2, 1, null, Design API, Design task service API, 2, 1, 2026-07-15, Split endpoints by domain, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ef562b6]
+<==      Total: 3
+2026-07-08T16:39:57.905+08:00 DEBUG 25080 --- [nio-8080-exec-6] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6c6ff8c2]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@41c5c540]
+2026-07-08T16:39:57.905+08:00 DEBUG 25080 --- [nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7b4201a7]
+2026-07-08T16:39:57.905+08:00 DEBUG 25080 --- [nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-07-08T16:39:57.907+08:00 DEBUG 25080 --- [nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-07-08T16:39:57.907+08:00 DEBUG 25080 --- [nio-8080-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-07-08T16:39:57.916+08:00 DEBUG 25080 --- [nio-8080-exec-6] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[TaskLog(id=3, operatorId=3, taskId=3, progressPercent=90, co (truncated)...]
+2026-07-08T16:39:57.917+08:00 DEBUG 25080 --- [nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[TaskSummary(id=3, creatorId=3, projectId=3, taskId=3, summar (truncated)...]
+2026-07-08T16:39:57.918+08:00 DEBUG 25080 --- [nio-8080-exec-2] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[ProjectInfo(id=3, ownerId=3, name=Project Gamma, description (truncated)...]
+2026-07-08T16:39:57.918+08:00 DEBUG 25080 --- [nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[SysUser(id=3, username=carol, password=e10adc3949ba59abbe56e (truncated)...]
+2026-07-08T16:39:57.920+08:00 DEBUG 25080 --- [nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:39:57.920+08:00 DEBUG 25080 --- [nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:39:57.920+08:00 DEBUG 25080 --- [nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:39:57.920+08:00 DEBUG 25080 --- [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:39:57.922+08:00 DEBUG 25080 --- [nio-8080-exec-3] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[TaskInfo(id=3, creatorId=3, assigneeId=1, projectId=3, paren (truncated)...]
+2026-07-08T16:39:57.924+08:00 DEBUG 25080 --- [nio-8080-exec-3] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:40:41.694+08:00 DEBUG 25080 --- [nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : GET "/projectInfos", parameters={}
+2026-07-08T16:40:41.694+08:00 DEBUG 25080 --- [nio-8080-exec-7] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.ProjectInfoController#getAll()
+2026-07-08T16:40:41.694+08:00 DEBUG 25080 --- [nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : GET "/taskLogs", parameters={}
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : GET "/taskInfos", parameters={}
+Creating a new SqlSession
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [nio-8080-exec-9] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.TaskLogController#getAll()
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@68bf2f28] was not registered for synchronization because synchronization is not active
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [nio-8080-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.TaskInfoController#getAll()
+Creating a new SqlSession
+Creating a new SqlSession
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : GET "/sysUsers", parameters={}
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@21799380] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1719196751 wrapping com.mysql.cj.jdbc.ConnectionImpl@412c5e8b] will not be managed by Spring
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@474780c5] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@625345399 wrapping com.mysql.cj.jdbc.ConnectionImpl@15bbdf4] will not be managed by Spring
+==>  Preparing: select id, owner_id, name, description, priority, status, start_date, end_date, created_time, updated_time from project_info order by id desc
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [io-8080-exec-10] o.s.web.servlet.DispatcherServlet        : GET "/taskSummaries", parameters={}
+JDBC Connection [HikariProxyConnection@1233151581 wrapping com.mysql.cj.jdbc.ConnectionImpl@b2f2419] will not be managed by Spring
+==>  Preparing: select id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time from task_info order by id desc
+==>  Preparing: select id, operator_id, task_id, progress_percent, content, created_time, updated_time from task_log order by id desc
+==> Parameters: 
+==> Parameters: 
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.SysUserController#getAll()
+==> Parameters: 
+Creating a new SqlSession
+2026-07-08T16:40:41.696+08:00 DEBUG 25080 --- [io-8080-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.example.end.controller.TaskSummaryController#getAll()
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@678424d1] was not registered for synchronization because synchronization is not active
+<==    Columns: id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time
+<==    Columns: id, owner_id, name, description, priority, status, start_date, end_date, created_time, updated_time
+JDBC Connection [HikariProxyConnection@1361463898 wrapping com.mysql.cj.jdbc.ConnectionImpl@24dbcd92] will not be managed by Spring
+Creating a new SqlSession
+<==    Columns: id, operator_id, task_id, progress_percent, content, created_time, updated_time
+<==        Row: 3, 3, Project Gamma, Gamma support project, 0, 2, 2026-07-10, 2026-08-10, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5766365e] was not registered for synchronization because synchronization is not active
+<==        Row: 3, 3, 1, 3, null, Prepare Summary, Prepare final task summary, 0, 2, 2026-07-25, Generate weekly report draft, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+==>  Preparing: select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user order by id desc
+<==        Row: 2, 2, Project Beta, Beta optimization project, 1, 0, 2026-07-05, 2026-08-05, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+JDBC Connection [HikariProxyConnection@1503777474 wrapping com.mysql.cj.jdbc.ConnectionImpl@57c500b6] will not be managed by Spring
+<==        Row: 3, 3, 3, 90, Completed gamma progress log, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+==>  Preparing: select id, creator_id, project_id, task_id, summary_type, content, created_time, updated_time from task_summary order by id desc
+==> Parameters: 
+==> Parameters: 
+<==        Row: 1, 1, Project Alpha, Alpha delivery project, 2, 1, 2026-07-01, 2026-07-31, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 2, 2, 3, 2, 1, Implement Mapper, Implement MyBatis mapper layer, 1, 0, 2026-07-20, Add unit tests for mapper, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==      Total: 3
+<==    Columns: id, creator_id, project_id, task_id, summary_type, content, created_time, updated_time
+<==    Columns: id, username, password, real_name, role, email, phone, created_time, updated_time
+<==        Row: 3, 3, 3, 3, 1, Gamma final summary submitted, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+<==        Row: 2, 2, 2, 60, Updated beta progress log, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==        Row: 3, carol, e10adc3949ba59abbe56e057f20f883e, Carol Wang, 2, carol@example.com, 13800138003, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==        Row: 1, 1, 2, 1, null, Design API, Design task service API, 2, 1, 2026-07-15, Split endpoints by domain, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@68bf2f28]
+<==        Row: 1, 1, 1, 30, Initialized project alpha log, 2026-07-08 13:58:33, 2026-07-08 13:58:33
+<==        Row: 2, 2, 2, 2, 0, Beta weekly summary updated, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+2026-07-08T16:40:41.705+08:00 DEBUG 25080 --- [nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+<==      Total: 3
+<==      Total: 3
+<==        Row: 2, bob, e10adc3949ba59abbe56e057f20f883e, Bob Li, 1, bob@example.com, 13800138002, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@21799380]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@474780c5]
+2026-07-08T16:40:41.705+08:00 DEBUG 25080 --- [nio-8080-exec-7] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[ProjectInfo(id=3, ownerId=3, name=Project Gamma, description (truncated)...]
+<==        Row: 1, 1, 1, 1, 0, Alpha daily summary created, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+2026-07-08T16:40:41.709+08:00 DEBUG 25080 --- [nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+<==        Row: 1, alice, e10adc3949ba59abbe56e057f20f883e, Alice Zhang, 0, alice@example.com, 13800138001, 2026-07-08 13:58:33, 2026-07-08 14:20:03
+2026-07-08T16:40:41.709+08:00 DEBUG 25080 --- [nio-8080-exec-9] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+<==      Total: 3
+2026-07-08T16:40:41.709+08:00 DEBUG 25080 --- [nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[TaskInfo(id=3, creatorId=3, assigneeId=1, projectId=3, paren (truncated)...]
+<==      Total: 3
+2026-07-08T16:40:41.709+08:00 DEBUG 25080 --- [nio-8080-exec-7] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5766365e]
+2026-07-08T16:40:41.709+08:00 DEBUG 25080 --- [nio-8080-exec-9] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[TaskLog(id=3, operatorId=3, taskId=3, progressPercent=90, co (truncated)...]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@678424d1]
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [io-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [nio-8080-exec-9] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [io-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[TaskSummary(id=3, creatorId=3, projectId=3, taskId=3, summar (truncated)...]
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Writing [Result(code=200, message=success, data=[SysUser(id=3, username=carol, password=e10adc3949ba59abbe56e (truncated)...]
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [io-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-07-08T16:40:41.712+08:00 DEBUG 25080 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 200 OK

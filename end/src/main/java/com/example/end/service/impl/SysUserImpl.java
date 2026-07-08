@@ -33,11 +33,11 @@ public class SysUserImpl implements SysUserService {
 
     @Override
     public boolean updateById(SysUser sysUser) {
-        SysUser existingUser = sysUserMapper.selectById(sysUser.getId());
-        if (existingUser == null) {
-            return false;
-        }
         if (sysUser.getPassword() == null || sysUser.getPassword().isBlank()) {
+            SysUser existingUser = sysUserMapper.selectById(sysUser.getId());
+            if (existingUser == null) {
+                return false;
+            }
             sysUser.setPassword(existingUser.getPassword());
         } else {
             sysUser.setPassword(PasswordUtil.md5(sysUser.getPassword().trim()));

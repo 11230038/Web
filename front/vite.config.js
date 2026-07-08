@@ -10,6 +10,17 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  server: {
+    proxy: {
+      '/auth': 'http://127.0.0.1:8080',
+      '/projectInfos': 'http://127.0.0.1:8080',
+      '/taskInfos': 'http://127.0.0.1:8080',
+      '/taskLogs': 'http://127.0.0.1:8080',
+      '/taskSummaries': 'http://127.0.0.1:8080',
+      '/sysUsers': 'http://127.0.0.1:8080',
+      '/api': 'http://127.0.0.1:8080',
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

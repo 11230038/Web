@@ -19,7 +19,7 @@ class ProjectInfoControllerReflectionTest {
         Recorder handler = new Recorder();
         Object project = newProject(1L, "demo");
         handler.addResult = project;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, 9L, null));
 
         Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.ProjectInfo")}, project);
 
@@ -33,7 +33,7 @@ class ProjectInfoControllerReflectionTest {
     void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, 9L, null));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
 
@@ -45,7 +45,7 @@ class ProjectInfoControllerReflectionTest {
     void updateByIdShouldReturnNotFoundWhenServiceFails() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = false;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, 9L, null));
         Object project = newProject(2L, "build");
 
         Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.ProjectInfo")}, project);
@@ -60,7 +60,7 @@ class ProjectInfoControllerReflectionTest {
         Recorder handler = new Recorder();
         Object project = newProject(3L, "ship");
         handler.getByIdResult = project;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L, null));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
@@ -73,7 +73,7 @@ class ProjectInfoControllerReflectionTest {
         Recorder handler = new Recorder();
         List<Object> projects = List.of(newProject(1L, "a"), newProject(2L, "b"));
         handler.getAllResult = projects;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L, null));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
@@ -81,16 +81,28 @@ class ProjectInfoControllerReflectionTest {
         assertEquals(projects, invokeGetter(result, "getData"));
     }
 
-    private Object newController(Object service) throws Exception {
+    private Object newController(Object service, Object accessService) throws Exception {
         Class<?> controllerClass = Class.forName("com.example.end.controller.ProjectInfoController");
         Class<?> serviceClass = Class.forName("com.example.end.service.ProjectInfoService");
-        Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
-        return constructor.newInstance(service);
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        Constructor<?> constructor = controllerClass.getConstructor(serviceClass, accessServiceClass);
+        return constructor.newInstance(service, accessService);
     }
 
     private Object newService(Recorder handler) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.ProjectInfoService");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
+    }
+
+    private Object newAccessService(boolean manager, Long currentUserId, Object currentUser) throws Exception {
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{accessServiceClass}, (proxy, method, args) -> switch (method.getName()) {
+            case "isManager" -> manager;
+            case "currentUserId" -> currentUserId;
+            case "currentUser" -> currentUser;
+            case "isCurrentUser" -> args != null && args.length > 0 && currentUserId.equals(args[0]);
+            default -> null;
+        });
     }
 
     private Object newProject(Long id, String name) throws Exception {

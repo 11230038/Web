@@ -14,5 +14,7 @@ public interface SysUserService {
 
     SysUser getById(Long id);
 
+    SysUser getByUsername(String username);
+
     List<SysUser> getAll();
 }

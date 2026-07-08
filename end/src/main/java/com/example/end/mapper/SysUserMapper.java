@@ -39,6 +39,9 @@ public interface SysUserMapper {
     @Select("select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user where id = #{id}")
     SysUser selectById(Long id);
 
+    @Select("select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user where username = #{username} limit 1")
+    SysUser selectByUsername(String username);
+
     @Select("select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user order by id desc")
     List<SysUser> selectAll();
 }

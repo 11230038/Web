@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.auth.AccessService;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.TaskLog;
 import com.example.end.service.TaskLogService;
@@ -19,18 +20,26 @@ import java.util.List;
 public class TaskLogController {
 
     private final TaskLogService taskLogService;
+    private final AccessService accessService;
 
-    public TaskLogController(TaskLogService taskLogService) {
+    public TaskLogController(TaskLogService taskLogService, AccessService accessService) {
         this.taskLogService = taskLogService;
+        this.accessService = accessService;
     }
 
     @PostMapping
     public Result<TaskLog> add(@RequestBody TaskLog taskLog) {
+        if (taskLog.getOperatorId() == null) {
+            taskLog.setOperatorId(accessService.currentUserId());
+        }
         return Result.success(taskLogService.add(taskLog));
     }
 
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Integer id) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean deleted = taskLogService.deleteById(id);
         if (!deleted) {
             return Result.error(404, "task log not found");
@@ -40,6 +49,9 @@ public class TaskLogController {
 
     @PutMapping
     public Result<Boolean> updateById(@RequestBody TaskLog taskLog) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean updated = taskLogService.updateById(taskLog);
         if (!updated) {
             return Result.error(404, "task log not found");
@@ -59,5 +71,9 @@ public class TaskLogController {
     @GetMapping
     public Result<List<TaskLog>> getAll() {
         return Result.success(taskLogService.getAll());
+    }
+
+    private <T> Result<T> forbidden() {
+        return Result.error(403, "forbidden");
     }
 }

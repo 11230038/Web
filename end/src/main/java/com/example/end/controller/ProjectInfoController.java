@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.auth.AccessService;
 import com.example.end.pojo.ProjectInfo;
 import com.example.end.pojo.Result;
 import com.example.end.service.ProjectInfoService;
@@ -19,18 +20,29 @@ import java.util.List;
 public class ProjectInfoController {
 
     private final ProjectInfoService projectInfoService;
+    private final AccessService accessService;
 
-    public ProjectInfoController(ProjectInfoService projectInfoService) {
+    public ProjectInfoController(ProjectInfoService projectInfoService, AccessService accessService) {
         this.projectInfoService = projectInfoService;
+        this.accessService = accessService;
     }
 
     @PostMapping
     public Result<ProjectInfo> add(@RequestBody ProjectInfo projectInfo) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
+        if (projectInfo.getOwnerId() == null) {
+            projectInfo.setOwnerId(accessService.currentUserId());
+        }
         return Result.success(projectInfoService.add(projectInfo));
     }
 
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean deleted = projectInfoService.deleteById(id);
         if (!deleted) {
             return Result.error(404, "project not found");
@@ -40,6 +52,9 @@ public class ProjectInfoController {
 
     @PutMapping
     public Result<Boolean> updateById(@RequestBody ProjectInfo projectInfo) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean updated = projectInfoService.updateById(projectInfo);
         if (!updated) {
             return Result.error(404, "project not found");
@@ -59,5 +74,9 @@ public class ProjectInfoController {
     @GetMapping
     public Result<List<ProjectInfo>> getAll() {
         return Result.success(projectInfoService.getAll());
+    }
+
+    private <T> Result<T> forbidden() {
+        return Result.error(403, "forbidden");
     }
 }

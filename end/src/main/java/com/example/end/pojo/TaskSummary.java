@@ -1,5 +1,6 @@
 package com.example.end.pojo;
 
+import com.example.end.config.TaskSummaryConfig;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,11 +15,15 @@ public class TaskSummary {
 
     private Integer taskId;
 
-    private String summaryType;
+    private Integer summaryType;
 
     private String content;
 
     private LocalDateTime createdTime;
 
     private LocalDateTime updatedTime;
+
+    public String getSummaryTypeName() {
+        return TaskSummaryConfig.getSummaryTypeName(summaryType);
+    }
 }

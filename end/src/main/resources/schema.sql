@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS task_summary (
     creator_id BIGINT NOT NULL,
     project_id BIGINT NOT NULL,
     task_id INT NOT NULL,
-    summary_type VARCHAR(255) NOT NULL,
+    summary_type INT NOT NULL,
     content VARCHAR(255) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -1,5 +1,8 @@
 package com.example.end.controller;
 
+import com.example.end.auth.AccessService;
+import com.example.end.auth.PasswordChangeRequest;
+import com.example.end.auth.PasswordUtil;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.SysUser;
 import com.example.end.service.SysUserService;
@@ -19,18 +22,26 @@ import java.util.List;
 public class SysUserController {
 
     private final SysUserService sysUserService;
+    private final AccessService accessService;
 
-    public SysUserController(SysUserService sysUserService) {
+    public SysUserController(SysUserService sysUserService, AccessService accessService) {
         this.sysUserService = sysUserService;
+        this.accessService = accessService;
     }
 
     @PostMapping
     public Result<SysUser> add(@RequestBody SysUser sysUser) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         return Result.success(sysUserService.add(sysUser));
     }
 
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean deleted = sysUserService.deleteById(id);
         if (!deleted) {
             return Result.error(404, "user not found");
@@ -40,6 +51,9 @@ public class SysUserController {
 
     @PutMapping
     public Result<Boolean> updateById(@RequestBody SysUser sysUser) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean updated = sysUserService.updateById(sysUser);
         if (!updated) {
             return Result.error(404, "user not found");
@@ -59,5 +73,26 @@ public class SysUserController {
     @GetMapping
     public Result<List<SysUser>> getAll() {
         return Result.success(sysUserService.getAll());
+    }
+
+    @PostMapping("/change-password")
+    public Result<Boolean> changePassword(@RequestBody PasswordChangeRequest request) {
+        SysUser currentUser = accessService.currentUser();
+        if (currentUser == null) {
+            return Result.error(401, "unauthorized");
+        }
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null
+                || request.getOldPassword().isBlank() || request.getNewPassword().isBlank()) {
+            return Result.error(400, "oldPassword and newPassword are required");
+        }
+        if (!PasswordUtil.matches(request.getOldPassword(), currentUser.getPassword())) {
+            return Result.error(400, "old password is incorrect");
+        }
+        currentUser.setPassword(PasswordUtil.md5(request.getNewPassword().trim()));
+        return Result.success(sysUserService.updateById(currentUser));
+    }
+
+    private <T> Result<T> forbidden() {
+        return Result.error(403, "forbidden");
     }
 }

@@ -18,7 +18,7 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         Object user = newUser(1L, "alice");
         handler.addResult = user;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, user));
 
         Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
 
@@ -33,7 +33,7 @@ class SysUserControllerReflectionTest {
     void deleteByIdShouldDelegateToService() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, newUser(1L, "alice")));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
 
@@ -47,7 +47,7 @@ class SysUserControllerReflectionTest {
     void updateByIdShouldReturnNotFoundWhenServiceFails() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = false;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, newUser(1L, "alice")));
         Object user = newUser(2L, "bob");
 
         Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
@@ -63,7 +63,7 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         Object user = newUser(3L, "carol");
         handler.getByIdResult = user;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, user));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
@@ -78,7 +78,7 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         List<Object> users = List.of(newUser(1L, "alice"), newUser(2L, "bob"));
         handler.getAllResult = users;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, newUser(1L, "alice")));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
@@ -88,16 +88,29 @@ class SysUserControllerReflectionTest {
         assertEquals(users, invokeGetter(result, "getData"));
     }
 
-    private Object newController(Object service) throws Exception {
+    private Object newController(Object service, Object accessService) throws Exception {
         Class<?> controllerClass = Class.forName("com.example.end.controller.SysUserController");
         Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
-        Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
-        return constructor.newInstance(service);
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        Constructor<?> constructor = controllerClass.getConstructor(serviceClass, accessServiceClass);
+        return constructor.newInstance(service, accessService);
     }
 
     private Object newService(Recorder handler) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.SysUserService");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
+    }
+
+    private Object newAccessService(boolean manager, Object currentUser) throws Exception {
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        Long currentUserId = currentUser == null ? null : (Long) invokeGetter(currentUser, "getId");
+        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{accessServiceClass}, (proxy, method, args) -> switch (method.getName()) {
+            case "isManager" -> manager;
+            case "currentUserId" -> currentUserId;
+            case "currentUser" -> currentUser;
+            case "isCurrentUser" -> args != null && args.length > 0 && currentUserId != null && currentUserId.equals(args[0]);
+            default -> null;
+        });
     }
 
     private Object newUser(Long id, String username) throws Exception {

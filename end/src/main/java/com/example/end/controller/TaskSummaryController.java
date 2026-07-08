@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.auth.AccessService;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.TaskSummary;
 import com.example.end.service.TaskSummaryService;
@@ -19,18 +20,26 @@ import java.util.List;
 public class TaskSummaryController {
 
     private final TaskSummaryService taskSummaryService;
+    private final AccessService accessService;
 
-    public TaskSummaryController(TaskSummaryService taskSummaryService) {
+    public TaskSummaryController(TaskSummaryService taskSummaryService, AccessService accessService) {
         this.taskSummaryService = taskSummaryService;
+        this.accessService = accessService;
     }
 
     @PostMapping
     public Result<TaskSummary> add(@RequestBody TaskSummary taskSummary) {
+        if (taskSummary.getCreatorId() == null) {
+            taskSummary.setCreatorId(accessService.currentUserId());
+        }
         return Result.success(taskSummaryService.add(taskSummary));
     }
 
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean deleted = taskSummaryService.deleteById(id);
         if (!deleted) {
             return Result.error(404, "task summary not found");
@@ -40,6 +49,9 @@ public class TaskSummaryController {
 
     @PutMapping
     public Result<Boolean> updateById(@RequestBody TaskSummary taskSummary) {
+        if (!accessService.isManager()) {
+            return forbidden();
+        }
         boolean updated = taskSummaryService.updateById(taskSummary);
         if (!updated) {
             return Result.error(404, "task summary not found");
@@ -59,5 +71,9 @@ public class TaskSummaryController {
     @GetMapping
     public Result<List<TaskSummary>> getAll() {
         return Result.success(taskSummaryService.getAll());
+    }
+
+    private <T> Result<T> forbidden() {
+        return Result.error(403, "forbidden");
     }
 }

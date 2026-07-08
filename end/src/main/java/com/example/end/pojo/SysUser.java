@@ -1,5 +1,6 @@
 package com.example.end.pojo;
 
+import com.example.end.config.UserRoleConfig;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -23,4 +24,8 @@ public class SysUser {
     private LocalDateTime createdTime;
 
     private LocalDateTime updatedTime;
+
+    public String getRoleName() {
+        return UserRoleConfig.getRoleName(role);
+    }
 }

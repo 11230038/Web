@@ -1,3 +1,2 @@
-deploy.sh
-*.log
-.env
+end\src\main\resources\application.properties
+end\src\main\resources\application-ai.properties

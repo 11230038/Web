@@ -16,9 +16,9 @@ class TaskSummaryControllerReflectionTest {
     @Test
     void addShouldDelegateToService() throws Exception {
         Recorder handler = new Recorder();
-        Object taskSummary = newTaskSummary(1L, "daily");
+        Object taskSummary = newTaskSummary(1L, 0);
         handler.addResult = taskSummary;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
 
         Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.TaskSummary")}, taskSummary);
 
@@ -32,7 +32,7 @@ class TaskSummaryControllerReflectionTest {
     void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, 9L));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
 
@@ -44,8 +44,8 @@ class TaskSummaryControllerReflectionTest {
     void updateByIdShouldReturnNotFoundWhenServiceFails() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = false;
-        Object controller = newController(newService(handler));
-        Object taskSummary = newTaskSummary(2L, "weekly");
+        Object controller = newController(newService(handler), newAccessService(true, 9L));
+        Object taskSummary = newTaskSummary(2L, 1);
 
         Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskSummary")}, taskSummary);
 
@@ -57,9 +57,9 @@ class TaskSummaryControllerReflectionTest {
     @Test
     void getByIdShouldReturnWrappedTaskSummary() throws Exception {
         Recorder handler = new Recorder();
-        Object taskSummary = newTaskSummary(3L, "monthly");
+        Object taskSummary = newTaskSummary(3L, 1);
         handler.getByIdResult = taskSummary;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
@@ -70,9 +70,9 @@ class TaskSummaryControllerReflectionTest {
     @Test
     void getAllShouldReturnWrappedList() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> taskSummaries = List.of(newTaskSummary(1L, "a"), newTaskSummary(2L, "b"));
+        List<Object> taskSummaries = List.of(newTaskSummary(1L, 0), newTaskSummary(2L, 1));
         handler.getAllResult = taskSummaries;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
@@ -80,11 +80,12 @@ class TaskSummaryControllerReflectionTest {
         assertEquals(taskSummaries, invokeGetter(result, "getData"));
     }
 
-    private Object newController(Object service) throws Exception {
+    private Object newController(Object service, Object accessService) throws Exception {
         Class<?> controllerClass = Class.forName("com.example.end.controller.TaskSummaryController");
         Class<?> serviceClass = Class.forName("com.example.end.service.TaskSummaryService");
-        Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
-        return constructor.newInstance(service);
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        Constructor<?> constructor = controllerClass.getConstructor(serviceClass, accessServiceClass);
+        return constructor.newInstance(service, accessService);
     }
 
     private Object newService(Recorder handler) throws Exception {
@@ -92,14 +93,25 @@ class TaskSummaryControllerReflectionTest {
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
     }
 
-    private Object newTaskSummary(Long id, String summaryType) throws Exception {
+    private Object newAccessService(boolean manager, Long currentUserId) throws Exception {
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{accessServiceClass}, (proxy, method, args) -> switch (method.getName()) {
+            case "isManager" -> manager;
+            case "currentUserId" -> currentUserId;
+            case "currentUser" -> null;
+            case "isCurrentUser" -> args != null && args.length > 0 && currentUserId.equals(args[0]);
+            default -> null;
+        });
+    }
+
+    private Object newTaskSummary(Long id, Integer summaryType) throws Exception {
         Class<?> taskSummaryClass = Class.forName("com.example.end.pojo.TaskSummary");
         Object taskSummary = taskSummaryClass.getConstructor().newInstance();
         invoke(taskSummary, "setId", new Class<?>[]{Long.class}, id);
         invoke(taskSummary, "setCreatorId", new Class<?>[]{Long.class}, 1L);
         invoke(taskSummary, "setProjectId", new Class<?>[]{Long.class}, 1L);
         invoke(taskSummary, "setTaskId", new Class<?>[]{Integer.class}, 1);
-        invoke(taskSummary, "setSummaryType", new Class<?>[]{String.class}, summaryType);
+        invoke(taskSummary, "setSummaryType", new Class<?>[]{Integer.class}, summaryType);
         invoke(taskSummary, "setContent", new Class<?>[]{String.class}, "content");
         return taskSummary;
     }

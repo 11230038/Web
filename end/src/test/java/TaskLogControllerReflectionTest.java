@@ -18,7 +18,7 @@ class TaskLogControllerReflectionTest {
         Recorder handler = new Recorder();
         Object taskLog = newTaskLog(1, "first log");
         handler.addResult = taskLog;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
 
         Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.TaskLog")}, taskLog);
 
@@ -32,7 +32,7 @@ class TaskLogControllerReflectionTest {
     void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, 9L));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Integer.class}, 1);
 
@@ -44,7 +44,7 @@ class TaskLogControllerReflectionTest {
     void updateByIdShouldReturnNotFoundWhenServiceFails() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = false;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(true, 9L));
         Object taskLog = newTaskLog(2, "second log");
 
         Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskLog")}, taskLog);
@@ -59,7 +59,7 @@ class TaskLogControllerReflectionTest {
         Recorder handler = new Recorder();
         Object taskLog = newTaskLog(3, "third log");
         handler.getByIdResult = taskLog;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Integer.class}, 3);
 
@@ -72,7 +72,7 @@ class TaskLogControllerReflectionTest {
         Recorder handler = new Recorder();
         List<Object> taskLogs = List.of(newTaskLog(1, "a"), newTaskLog(2, "b"));
         handler.getAllResult = taskLogs;
-        Object controller = newController(newService(handler));
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
@@ -80,16 +80,28 @@ class TaskLogControllerReflectionTest {
         assertEquals(taskLogs, invokeGetter(result, "getData"));
     }
 
-    private Object newController(Object service) throws Exception {
+    private Object newController(Object service, Object accessService) throws Exception {
         Class<?> controllerClass = Class.forName("com.example.end.controller.TaskLogController");
         Class<?> serviceClass = Class.forName("com.example.end.service.TaskLogService");
-        Constructor<?> constructor = controllerClass.getConstructor(serviceClass);
-        return constructor.newInstance(service);
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        Constructor<?> constructor = controllerClass.getConstructor(serviceClass, accessServiceClass);
+        return constructor.newInstance(service, accessService);
     }
 
     private Object newService(Recorder handler) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.TaskLogService");
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{serviceClass}, handler);
+    }
+
+    private Object newAccessService(boolean manager, Long currentUserId) throws Exception {
+        Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{accessServiceClass}, (proxy, method, args) -> switch (method.getName()) {
+            case "isManager" -> manager;
+            case "currentUserId" -> currentUserId;
+            case "currentUser" -> null;
+            case "isCurrentUser" -> args != null && args.length > 0 && currentUserId.equals(args[0]);
+            default -> null;
+        });
     }
 
     private Object newTaskLog(Integer id, String content) throws Exception {

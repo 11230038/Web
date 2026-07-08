@@ -1,10 +1,13 @@
 package com.example.end.agent;
 
 import com.example.end.config.UserRoleConfig;
+import com.example.end.pojo.ProjectInfo;
 import com.example.end.pojo.SysUser;
+import com.example.end.service.ProjectInfoService;
 import com.example.end.service.SysUserService;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,17 +23,20 @@ public class TaskSuggestionAgentService {
     private final TaskBreakdownJsonParser taskBreakdownJsonParser;
     private final PromptTemplateLoader promptTemplateLoader;
     private final SysUserService sysUserService;
+    private final ProjectInfoService projectInfoService;
 
     public TaskSuggestionAgentService(
             AiChatClient aiChatClient,
             TaskBreakdownJsonParser taskBreakdownJsonParser,
             PromptTemplateLoader promptTemplateLoader,
-            SysUserService sysUserService
+            SysUserService sysUserService,
+            ProjectInfoService projectInfoService
     ) {
         this.aiChatClient = aiChatClient;
         this.taskBreakdownJsonParser = taskBreakdownJsonParser;
         this.promptTemplateLoader = promptTemplateLoader;
         this.sysUserService = sysUserService;
+        this.projectInfoService = projectInfoService;
     }
 
     public TaskSuggestionResponse suggest(TaskSuggestionRequest request) {
@@ -46,8 +52,8 @@ public class TaskSuggestionAgentService {
         return new TaskSuggestionResponse(limit(content, 300));
     }
 
-    public TaskBreakdownResult decomposeProject(String projectName, String goal, String description) {
-        List<AiMemberOption> members = queryMembers();
+    public TaskBreakdownResult decomposeProject(Long projectId, String projectName, String goal, String description) {
+        List<AiMemberOption> members = queryMembers(projectId);
         String systemPrompt = promptTemplateLoader.load(PROJECT_BREAKDOWN_SYSTEM_PROMPT_PATH);
         String userPromptTemplate = promptTemplateLoader.load(PROJECT_BREAKDOWN_USER_PROMPT_PATH);
         String userPrompt = userPromptTemplate.formatted(
@@ -69,10 +75,13 @@ public class TaskSuggestionAgentService {
         return result;
     }
 
-    private List<AiMemberOption> queryMembers() {
+    private List<AiMemberOption> queryMembers(Long projectId) {
+        Long ownerId = resolveProjectOwnerId(projectId);
         List<AiMemberOption> members = sysUserService.getAll().stream()
                 .filter(user -> user.getId() != null)
-                .filter(this::isAssignableMember)
+                .filter(user -> isAssignableMember(user, ownerId))
+                .sorted(Comparator.comparing((SysUser user) -> isProjectOwner(user, ownerId) ? 0 : 1)
+                        .thenComparing(user -> resolveMemberName(user).toLowerCase()))
                 .map(this::toMemberOption)
                 .toList();
         if (members.isEmpty()) {
@@ -81,9 +90,24 @@ public class TaskSuggestionAgentService {
         return members;
     }
 
-    private boolean isAssignableMember(SysUser user) {
+    private Long resolveProjectOwnerId(Long projectId) {
+        if (projectId == null) {
+            return null;
+        }
+        ProjectInfo projectInfo = projectInfoService.getById(projectId);
+        return projectInfo == null ? null : projectInfo.getOwnerId();
+    }
+
+    private boolean isAssignableMember(SysUser user, Long ownerId) {
+        if (isProjectOwner(user, ownerId)) {
+            return true;
+        }
         return user.getRole() != null
-                && user.getRole() != UserRoleConfig.ROLE_ADMIN;
+                && user.getRole() == UserRoleConfig.ROLE_EMPLOYEE;
+    }
+
+    private boolean isProjectOwner(SysUser user, Long ownerId) {
+        return ownerId != null && ownerId.equals(user.getId());
     }
 
     private AiMemberOption toMemberOption(SysUser user) {

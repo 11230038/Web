@@ -574,7 +574,10 @@ export function useWorkspaceApp() {
       }
       const data = await api('/api/ai/project-breakdown', {
         method: 'POST',
-        body: JSON.stringify(aiForm),
+        body: JSON.stringify({
+          ...aiForm,
+          projectId: aiForm.importProjectId || editor.task.projectId || null,
+        }),
       })
       breakdownResult.value = data
       selectedBreakdownIndexes.value = (data.items || []).map((_, index) => index)

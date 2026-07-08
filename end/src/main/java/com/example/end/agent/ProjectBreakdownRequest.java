@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class ProjectBreakdownRequest {
+    private Long projectId;
+
     private String projectName;
 
     private String goal;

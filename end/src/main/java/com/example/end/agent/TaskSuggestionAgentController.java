@@ -33,6 +33,7 @@ public class TaskSuggestionAgentController {
             return Result.error(403, "forbidden");
         }
         return taskSuggestionAgentService.decomposeProject(
+                request.getProjectId(),
                 request.getProjectName(),
                 request.getGoal(),
                 request.getDescription()

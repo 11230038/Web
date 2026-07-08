@@ -25,6 +25,8 @@ class TaskSuggestionAgentServiceDeepSeekIntegrationTest {
         Class<?> loaderClass = Class.forName("com.example.end.agent.PromptTemplateLoader");
         Class<?> serviceClass = Class.forName("com.example.end.agent.TaskSuggestionAgentService");
         Class<?> sysUserServiceClass = Class.forName("com.example.end.service.SysUserService");
+        Class<?> projectInfoServiceClass = Class.forName("com.example.end.service.ProjectInfoService");
+        Class<?> projectInfoClass = Class.forName("com.example.end.pojo.ProjectInfo");
 
         Object aiProperties = aiPropertiesClass.getConstructor().newInstance();
         invoke(aiProperties, "setBaseUrl", new Class<?>[]{String.class}, properties.getProperty("ai.base-url"));
@@ -54,18 +56,33 @@ class TaskSuggestionAgentServiceDeepSeekIntegrationTest {
                     return null;
                 }
         );
+        Object projectInfo = projectInfoClass.getConstructor().newInstance();
+        invoke(projectInfo, "setId", new Class<?>[]{Long.class}, 21L);
+        invoke(projectInfo, "setOwnerId", new Class<?>[]{Long.class}, 11L);
+        Object projectInfoService = Proxy.newProxyInstance(
+                getClass().getClassLoader(),
+                new Class<?>[]{projectInfoServiceClass},
+                (proxy, method, args) -> {
+                    if ("getById".equals(method.getName())) {
+                        return projectInfo;
+                    }
+                    return null;
+                }
+        );
 
         Constructor<?> constructor = serviceClass.getConstructor(
                 aiChatClientClass,
                 parserClass,
                 loaderClass,
-                sysUserServiceClass
+                sysUserServiceClass,
+                projectInfoServiceClass
         );
-        Object service = constructor.newInstance(aiChatClient, parser, loader, sysUserService);
+        Object service = constructor.newInstance(aiChatClient, parser, loader, sysUserService, projectInfoService);
 
-        Method decomposeProject = serviceClass.getMethod("decomposeProject", String.class, String.class, String.class);
+        Method decomposeProject = serviceClass.getMethod("decomposeProject", Long.class, String.class, String.class, String.class);
         Object result = decomposeProject.invoke(
                 service,
+                21L,
                 "Campus Task Collaboration Platform",
                 "Deliver a usable web app for task assignment, progress tracking, and weekly summaries within 4 weeks",
                 """

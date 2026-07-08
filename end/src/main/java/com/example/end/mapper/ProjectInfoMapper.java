@@ -50,4 +50,12 @@ public interface ProjectInfoMapper {
             order by id desc
             """)
     List<ProjectInfo> selectAll();
+
+    @Select("""
+            select id, owner_id, name, description, priority, status, start_date, end_date, created_time, updated_time
+            from project_info
+            where owner_id = #{ownerId}
+            order by id desc
+            """)
+    List<ProjectInfo> selectAllByOwnerId(Long ownerId);
 }

@@ -1,6 +1,7 @@
 package com.example.end.controller;
 
 import com.example.end.auth.AccessService;
+import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.TaskLog;
 import com.example.end.service.TaskLogService;
@@ -70,6 +71,15 @@ public class TaskLogController {
 
     @GetMapping
     public Result<List<TaskLog>> getAll() {
+        var currentUser = accessService.currentUser();
+        if (currentUser != null && currentUser.getRole() != null) {
+            if (currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER) {
+                return Result.success(taskLogService.getAllByOwnerId(accessService.currentUserId()));
+            }
+            if (currentUser.getRole() == UserRoleConfig.ROLE_EMPLOYEE) {
+                return Result.success(taskLogService.getAllByParticipantId(accessService.currentUserId()));
+            }
+        }
         return Result.success(taskLogService.getAll());
     }
 

@@ -12,6 +12,8 @@ public interface SysUserService {
 
     boolean updateById(SysUser sysUser);
 
+    boolean updateRoleById(Long id, Integer role);
+
     SysUser getById(Long id);
 
     SysUser getByUsername(String username);

@@ -15,4 +15,8 @@ public interface TaskSummaryService {
     TaskSummary getById(Long id);
 
     List<TaskSummary> getAll();
+
+    List<TaskSummary> getAllByOwnerId(Long ownerId);
+
+    List<TaskSummary> getAllByParticipantId(Long userId);
 }

@@ -41,4 +41,14 @@ public class TaskSummaryImpl implements TaskSummaryService {
     public List<TaskSummary> getAll() {
         return taskSummaryMapper.selectAll();
     }
+
+    @Override
+    public List<TaskSummary> getAllByOwnerId(Long ownerId) {
+        return taskSummaryMapper.selectAllByOwnerId(ownerId);
+    }
+
+    @Override
+    public List<TaskSummary> getAllByParticipantId(Long userId) {
+        return taskSummaryMapper.selectAllByParticipantId(userId);
+    }
 }

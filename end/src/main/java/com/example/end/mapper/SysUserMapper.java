@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
@@ -35,6 +36,14 @@ public interface SysUserMapper {
             where id = #{id}
             """)
     int updateById(SysUser sysUser);
+
+    @Update("""
+            update sys_user
+            set role = #{role},
+                updated_time = now()
+            where id = #{id}
+            """)
+    int updateRoleById(@Param("id") Long id, @Param("role") Integer role);
 
     @Select("select id, username, password, real_name, role, email, phone, created_time, updated_time from sys_user where id = #{id}")
     SysUser selectById(Long id);

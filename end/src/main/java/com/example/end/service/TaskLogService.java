@@ -15,4 +15,8 @@ public interface TaskLogService {
     TaskLog getById(Integer id);
 
     List<TaskLog> getAll();
+
+    List<TaskLog> getAllByOwnerId(Long ownerId);
+
+    List<TaskLog> getAllByParticipantId(Long userId);
 }

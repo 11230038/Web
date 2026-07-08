@@ -392,6 +392,58 @@ textarea:focus {
   line-height: 1.7;
 }
 
+.workspace-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.workspace-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 20, 30, 0.46);
+  backdrop-filter: blur(8px);
+}
+
+.workspace-dialog {
+  position: relative;
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: 28px;
+  background: rgba(248, 241, 233, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.workspace-header {
+  margin-bottom: 20px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.workspace-panel {
+  grid-column: span 1;
+}
+
+.workspace-panel.wide {
+  grid-column: 1 / -1;
+}
+
+.workspace-results {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
 .profile-card {
   display: grid;
   gap: 12px;
@@ -435,6 +487,10 @@ code {
 
   .form-grid,
   .page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-grid {
     grid-template-columns: 1fr;
   }
 

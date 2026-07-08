@@ -15,4 +15,8 @@ public interface TaskInfoService {
     TaskInfo getById(Long id);
 
     List<TaskInfo> getAll();
+
+    List<TaskInfo> getAllByOwnerId(Long ownerId);
+
+    List<TaskInfo> getAllByParticipantId(Long userId);
 }

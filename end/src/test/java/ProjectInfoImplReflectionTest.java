@@ -97,6 +97,20 @@ class ProjectInfoImplReflectionTest {
         assertEquals(projects, result);
     }
 
+    @Test
+    void getAllByOwnerIdShouldReturnOwnerProjects() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> projects = List.of(newProject(3L, "owner-a"));
+        handler.selectAllByOwnerIdResult = projects;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByOwnerId", new Class<?>[]{Long.class}, 9L);
+
+        assertEquals(projects, result);
+        assertEquals("selectAllByOwnerId", handler.lastMethodName);
+        assertEquals(9L, handler.lastArgs[0]);
+    }
+
     private Object newService(Object mapper) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.impl.ProjectInfoImpl");
         Class<?> mapperClass = Class.forName("com.example.end.mapper.ProjectInfoMapper");
@@ -135,6 +149,7 @@ class ProjectInfoImplReflectionTest {
         private int updateResult;
         private Object selectByIdResult;
         private List<Object> selectAllResult = new ArrayList<>();
+        private List<Object> selectAllByOwnerIdResult = new ArrayList<>();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -146,6 +161,7 @@ class ProjectInfoImplReflectionTest {
                 case "updateById" -> updateResult;
                 case "selectById" -> selectByIdResult;
                 case "selectAll" -> selectAllResult;
+                case "selectAllByOwnerId" -> selectAllByOwnerIdResult;
                 default -> null;
             };
         }

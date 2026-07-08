@@ -15,4 +15,6 @@ public interface ProjectInfoService {
     ProjectInfo getById(Long id);
 
     List<ProjectInfo> getAll();
+
+    List<ProjectInfo> getAllByOwnerId(Long ownerId);
 }

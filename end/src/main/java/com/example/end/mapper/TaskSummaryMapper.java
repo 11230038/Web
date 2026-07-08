@@ -48,4 +48,29 @@ public interface TaskSummaryMapper {
             order by id desc
             """)
     List<TaskSummary> selectAll();
+
+    @Select("""
+            select id, creator_id, project_id, task_id, summary_type, content, created_time, updated_time
+            from task_summary
+            where project_id in (
+                select id
+                from project_info
+                where owner_id = #{ownerId}
+            )
+            order by id desc
+            """)
+    List<TaskSummary> selectAllByOwnerId(Long ownerId);
+
+    @Select("""
+            select id, creator_id, project_id, task_id, summary_type, content, created_time, updated_time
+            from task_summary
+            where project_id in (
+                select distinct project_id
+                from task_info
+                where project_id is not null
+                  and (assignee_id = #{userId} or creator_id = #{userId})
+            )
+            order by id desc
+            """)
+    List<TaskSummary> selectAllByParticipantId(Long userId);
 }

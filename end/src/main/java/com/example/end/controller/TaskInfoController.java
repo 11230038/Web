@@ -1,6 +1,7 @@
 package com.example.end.controller;
 
 import com.example.end.auth.AccessService;
+import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.TaskInfo;
 import com.example.end.service.TaskInfoService;
@@ -83,6 +84,15 @@ public class TaskInfoController {
 
     @GetMapping
     public Result<List<TaskInfo>> getAll() {
+        var currentUser = accessService.currentUser();
+        if (currentUser != null && currentUser.getRole() != null) {
+            if (currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER) {
+                return Result.success(taskInfoService.getAllByOwnerId(accessService.currentUserId()));
+            }
+            if (currentUser.getRole() == UserRoleConfig.ROLE_EMPLOYEE) {
+                return Result.success(taskInfoService.getAllByParticipantId(accessService.currentUserId()));
+            }
+        }
         return Result.success(taskInfoService.getAll());
     }
 

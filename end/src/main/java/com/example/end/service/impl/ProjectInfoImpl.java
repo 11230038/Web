@@ -41,4 +41,9 @@ public class ProjectInfoImpl implements ProjectInfoService {
     public List<ProjectInfo> getAll() {
         return projectInfoMapper.selectAll();
     }
+
+    @Override
+    public List<ProjectInfo> getAllByOwnerId(Long ownerId) {
+        return projectInfoMapper.selectAllByOwnerId(ownerId);
+    }
 }

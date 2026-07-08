@@ -3,6 +3,7 @@ package com.example.end.controller;
 import com.example.end.auth.AccessService;
 import com.example.end.auth.PasswordChangeRequest;
 import com.example.end.auth.PasswordUtil;
+import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.SysUser;
 import com.example.end.service.SysUserService;
@@ -31,7 +32,10 @@ public class SysUserController {
 
     @PostMapping
     public Result<SysUser> add(@RequestBody SysUser sysUser) {
-        if (!accessService.isManager()) {
+        SysUser currentUser = accessService.currentUser();
+        if (currentUser == null
+                || currentUser.getRole() == null
+                || currentUser.getRole() != UserRoleConfig.ROLE_ADMIN) {
             return forbidden();
         }
         return Result.success(sysUserService.add(sysUser));

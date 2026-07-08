@@ -47,4 +47,31 @@ public interface TaskLogMapper {
             order by id desc
             """)
     List<TaskLog> selectAll();
+
+    @Select("""
+            select tl.id, tl.operator_id, tl.task_id, tl.progress_percent, tl.content, tl.created_time, tl.updated_time
+            from task_log tl
+            join task_info ti on tl.task_id = ti.id
+            where ti.project_id in (
+                select id
+                from project_info
+                where owner_id = #{ownerId}
+            )
+            order by tl.id desc
+            """)
+    List<TaskLog> selectAllByOwnerId(Long ownerId);
+
+    @Select("""
+            select tl.id, tl.operator_id, tl.task_id, tl.progress_percent, tl.content, tl.created_time, tl.updated_time
+            from task_log tl
+            join task_info ti on tl.task_id = ti.id
+            where ti.project_id in (
+                select distinct project_id
+                from task_info
+                where project_id is not null
+                  and (assignee_id = #{userId} or creator_id = #{userId})
+            )
+            order by tl.id desc
+            """)
+    List<TaskLog> selectAllByParticipantId(Long userId);
 }

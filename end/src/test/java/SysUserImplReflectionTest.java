@@ -69,6 +69,20 @@ class SysUserImplReflectionTest {
     }
 
     @Test
+    void updateRoleByIdShouldReturnTrueWhenUpdateSucceeds() throws Exception {
+        Recorder handler = new Recorder();
+        handler.updateRoleResult = 1;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "updateRoleById", new Class<?>[]{Long.class, Integer.class}, 7L, 1);
+
+        assertEquals("updateRoleById", handler.lastMethodName);
+        assertEquals(7L, handler.lastArgs[0]);
+        assertEquals(1, handler.lastArgs[1]);
+        assertTrue((Boolean) result);
+    }
+
+    @Test
     void getByIdShouldReturnMapperResult() throws Exception {
         Recorder handler = new Recorder();
         Object user = newUser(3L, "carol");
@@ -138,6 +152,7 @@ class SysUserImplReflectionTest {
         private Object[] lastArgs = new Object[0];
         private int deleteResult;
         private int updateResult;
+        private int updateRoleResult;
         private Object selectByIdResult;
         private List<Object> selectAllResult = new ArrayList<>();
 
@@ -149,6 +164,7 @@ class SysUserImplReflectionTest {
                 case "insert" -> 1;
                 case "deleteById" -> deleteResult;
                 case "updateById" -> updateResult;
+                case "updateRoleById" -> updateRoleResult;
                 case "selectById" -> selectByIdResult;
                 case "selectAll" -> selectAllResult;
                 default -> null;

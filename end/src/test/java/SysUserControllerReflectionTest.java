@@ -7,6 +7,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -18,6 +19,7 @@ class SysUserControllerReflectionTest {
         Recorder handler = new Recorder();
         Object user = newUser(1L, "alice");
         handler.addResult = user;
+        invoke(user, "setRole", new Class<?>[]{Integer.class}, 0);
         Object controller = newController(newService(handler), newAccessService(true, user));
 
         Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
@@ -27,6 +29,21 @@ class SysUserControllerReflectionTest {
         assertEquals(200, invokeGetter(result, "getCode"));
         assertEquals("success", invokeGetter(result, "getMessage"));
         assertSame(user, invokeGetter(result, "getData"));
+    }
+
+    @Test
+    void addShouldReturnForbiddenWhenCurrentUserIsNotAdmin() throws Exception {
+        Recorder handler = new Recorder();
+        Object user = newUser(2L, "bob");
+        invoke(user, "setRole", new Class<?>[]{Integer.class}, 1);
+        Object controller = newController(newService(handler), newAccessService(true, user));
+
+        Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+
+        assertEquals(403, invokeGetter(result, "getCode"));
+        assertEquals("forbidden", invokeGetter(result, "getMessage"));
+        assertNull(invokeGetter(result, "getData"));
+        assertFalse("add".equals(handler.lastMethodName));
     }
 
     @Test

@@ -1,9 +1,12 @@
 package com.example.end.controller;
 
 import com.example.end.auth.AccessService;
+import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.ProjectInfo;
 import com.example.end.pojo.Result;
 import com.example.end.service.ProjectInfoService;
+import com.example.end.service.SysUserService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,21 +24,38 @@ public class ProjectInfoController {
 
     private final ProjectInfoService projectInfoService;
     private final AccessService accessService;
+    private final SysUserService sysUserService;
 
-    public ProjectInfoController(ProjectInfoService projectInfoService, AccessService accessService) {
+    public ProjectInfoController(
+            ProjectInfoService projectInfoService,
+            AccessService accessService,
+            SysUserService sysUserService
+    ) {
         this.projectInfoService = projectInfoService;
         this.accessService = accessService;
+        this.sysUserService = sysUserService;
     }
 
     @PostMapping
+    @Transactional
     public Result<ProjectInfo> add(@RequestBody ProjectInfo projectInfo) {
-        if (!accessService.isManager()) {
+        var currentUser = accessService.currentUser();
+        if (currentUser == null
+                || currentUser.getRole() == null
+                || (currentUser.getRole() != UserRoleConfig.ROLE_EMPLOYEE
+                && currentUser.getRole() != UserRoleConfig.ROLE_PROJECT_OWNER)) {
             return forbidden();
         }
-        if (projectInfo.getOwnerId() == null) {
-            projectInfo.setOwnerId(accessService.currentUserId());
+        Long currentUserId = accessService.currentUserId();
+        if (currentUserId == null) {
+            return forbidden();
         }
-        return Result.success(projectInfoService.add(projectInfo));
+        projectInfo.setOwnerId(currentUserId);
+        ProjectInfo createdProject = projectInfoService.add(projectInfo);
+        if (!sysUserService.updateRoleById(currentUserId, UserRoleConfig.ROLE_PROJECT_OWNER)) {
+            throw new IllegalStateException("failed to update user role");
+        }
+        return Result.success(createdProject);
     }
 
     @DeleteMapping("/{id}")
@@ -64,15 +84,28 @@ public class ProjectInfoController {
 
     @GetMapping("/{id}")
     public Result<ProjectInfo> getById(@PathVariable Long id) {
+        var currentUser = accessService.currentUser();
         ProjectInfo projectInfo = projectInfoService.getById(id);
         if (projectInfo == null) {
             return Result.error(404, "project not found");
+        }
+        if (currentUser != null
+                && currentUser.getRole() != null
+                && currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER
+                && !accessService.isCurrentUser(projectInfo.getOwnerId())) {
+            return forbidden();
         }
         return Result.success(projectInfo);
     }
 
     @GetMapping
     public Result<List<ProjectInfo>> getAll() {
+        var currentUser = accessService.currentUser();
+        if (currentUser != null
+                && currentUser.getRole() != null
+                && currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER) {
+            return Result.success(projectInfoService.getAllByOwnerId(accessService.currentUserId()));
+        }
         return Result.success(projectInfoService.getAll());
     }
 

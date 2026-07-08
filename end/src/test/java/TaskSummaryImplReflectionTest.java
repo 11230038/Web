@@ -96,6 +96,34 @@ class TaskSummaryImplReflectionTest {
         assertEquals(taskSummaries, result);
     }
 
+    @Test
+    void getAllByOwnerIdShouldReturnOwnerTaskSummaries() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> taskSummaries = List.of(newTaskSummary(3L, 0));
+        handler.selectAllByOwnerIdResult = taskSummaries;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByOwnerId", new Class<?>[]{Long.class}, 9L);
+
+        assertEquals(taskSummaries, result);
+        assertEquals("selectAllByOwnerId", handler.lastMethodName);
+        assertEquals(9L, handler.lastArgs[0]);
+    }
+
+    @Test
+    void getAllByParticipantIdShouldReturnParticipantTaskSummaries() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> taskSummaries = List.of(newTaskSummary(4L, 1));
+        handler.selectAllByParticipantIdResult = taskSummaries;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByParticipantId", new Class<?>[]{Long.class}, 2L);
+
+        assertEquals(taskSummaries, result);
+        assertEquals("selectAllByParticipantId", handler.lastMethodName);
+        assertEquals(2L, handler.lastArgs[0]);
+    }
+
     private Object newService(Object mapper) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.impl.TaskSummaryImpl");
         Class<?> mapperClass = Class.forName("com.example.end.mapper.TaskSummaryMapper");
@@ -132,6 +160,8 @@ class TaskSummaryImplReflectionTest {
         private int updateResult;
         private Object selectByIdResult;
         private List<Object> selectAllResult = new ArrayList<>();
+        private List<Object> selectAllByOwnerIdResult = new ArrayList<>();
+        private List<Object> selectAllByParticipantIdResult = new ArrayList<>();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -143,6 +173,8 @@ class TaskSummaryImplReflectionTest {
                 case "updateById" -> updateResult;
                 case "selectById" -> selectByIdResult;
                 case "selectAll" -> selectAllResult;
+                case "selectAllByOwnerId" -> selectAllByOwnerIdResult;
+                case "selectAllByParticipantId" -> selectAllByParticipantIdResult;
                 default -> null;
             };
         }

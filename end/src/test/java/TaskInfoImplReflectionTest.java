@@ -97,6 +97,34 @@ class TaskInfoImplReflectionTest {
         assertEquals(tasks, result);
     }
 
+    @Test
+    void getAllByOwnerIdShouldReturnOwnerTasks() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> tasks = List.of(newTask(3L, "owner-task"));
+        handler.selectAllByOwnerIdResult = tasks;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByOwnerId", new Class<?>[]{Long.class}, 9L);
+
+        assertEquals(tasks, result);
+        assertEquals("selectAllByOwnerId", handler.lastMethodName);
+        assertEquals(9L, handler.lastArgs[0]);
+    }
+
+    @Test
+    void getAllByParticipantIdShouldReturnParticipantTasks() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> tasks = List.of(newTask(4L, "participant-task"));
+        handler.selectAllByParticipantIdResult = tasks;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByParticipantId", new Class<?>[]{Long.class}, 2L);
+
+        assertEquals(tasks, result);
+        assertEquals("selectAllByParticipantId", handler.lastMethodName);
+        assertEquals(2L, handler.lastArgs[0]);
+    }
+
     private Object newService(Object mapper) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.impl.TaskInfoImpl");
         Class<?> mapperClass = Class.forName("com.example.end.mapper.TaskInfoMapper");
@@ -138,6 +166,8 @@ class TaskInfoImplReflectionTest {
         private int updateResult;
         private Object selectByIdResult;
         private List<Object> selectAllResult = new ArrayList<>();
+        private List<Object> selectAllByOwnerIdResult = new ArrayList<>();
+        private List<Object> selectAllByParticipantIdResult = new ArrayList<>();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -149,6 +179,8 @@ class TaskInfoImplReflectionTest {
                 case "updateById" -> updateResult;
                 case "selectById" -> selectByIdResult;
                 case "selectAll" -> selectAllResult;
+                case "selectAllByOwnerId" -> selectAllByOwnerIdResult;
+                case "selectAllByParticipantId" -> selectAllByParticipantIdResult;
                 default -> null;
             };
         }

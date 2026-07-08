@@ -46,6 +46,11 @@ public class SysUserImpl implements SysUserService {
     }
 
     @Override
+    public boolean updateRoleById(Long id, Integer role) {
+        return sysUserMapper.updateRoleById(id, role) > 0;
+    }
+
+    @Override
     public SysUser getById(Long id) {
         return sysUserMapper.selectById(id);
     }

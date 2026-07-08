@@ -82,6 +82,36 @@ class TaskInfoControllerReflectionTest {
         assertEquals(tasks, invokeGetter(result, "getData"));
     }
 
+    @Test
+    void getAllShouldReturnOwnerTasksForProjectOwner() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> tasks = List.of(newTask(3L, "owner-task"));
+        handler.getAllByOwnerIdResult = tasks;
+        Object controller = newController(newService(handler), newAccessService(false, 9L, 1));
+
+        Object result = invoke(controller, "getAll", new Class<?>[0]);
+
+        assertEquals("getAllByOwnerId", handler.lastMethodName);
+        assertEquals(9L, handler.lastArgs[0]);
+        assertEquals(200, invokeGetter(result, "getCode"));
+        assertEquals(tasks, invokeGetter(result, "getData"));
+    }
+
+    @Test
+    void getAllShouldReturnParticipantTasksForEmployee() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> tasks = List.of(newTask(4L, "employee-task"));
+        handler.getAllByParticipantIdResult = tasks;
+        Object controller = newController(newService(handler), newAccessService(false, 2L, 2));
+
+        Object result = invoke(controller, "getAll", new Class<?>[0]);
+
+        assertEquals("getAllByParticipantId", handler.lastMethodName);
+        assertEquals(2L, handler.lastArgs[0]);
+        assertEquals(200, invokeGetter(result, "getCode"));
+        assertEquals(tasks, invokeGetter(result, "getData"));
+    }
+
     private Object newController(Object service, Object accessService) throws Exception {
         Class<?> controllerClass = Class.forName("com.example.end.controller.TaskInfoController");
         Class<?> serviceClass = Class.forName("com.example.end.service.TaskInfoService");
@@ -96,14 +126,27 @@ class TaskInfoControllerReflectionTest {
     }
 
     private Object newAccessService(boolean manager, Long currentUserId) throws Exception {
+        return newAccessService(manager, currentUserId, null);
+    }
+
+    private Object newAccessService(boolean manager, Long currentUserId, Integer role) throws Exception {
         Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
+        Object currentUser = role == null ? null : newUser(currentUserId, role);
         return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{accessServiceClass}, (proxy, method, args) -> switch (method.getName()) {
             case "isManager" -> manager;
             case "currentUserId" -> currentUserId;
-            case "currentUser" -> null;
+            case "currentUser" -> currentUser;
             case "isCurrentUser" -> args != null && args.length > 0 && currentUserId.equals(args[0]);
             default -> null;
         });
+    }
+
+    private Object newUser(Long id, Integer role) throws Exception {
+        Class<?> userClass = Class.forName("com.example.end.pojo.SysUser");
+        Object user = userClass.getConstructor().newInstance();
+        invoke(user, "setId", new Class<?>[]{Long.class}, id);
+        invoke(user, "setRole", new Class<?>[]{Integer.class}, role);
+        return user;
     }
 
     private Object newTask(Long id, String title) throws Exception {
@@ -141,6 +184,8 @@ class TaskInfoControllerReflectionTest {
         private boolean updateResult;
         private Object getByIdResult;
         private List<Object> getAllResult = List.of();
+        private List<Object> getAllByOwnerIdResult = List.of();
+        private List<Object> getAllByParticipantIdResult = List.of();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -152,6 +197,8 @@ class TaskInfoControllerReflectionTest {
                 case "updateById" -> updateResult;
                 case "getById" -> getByIdResult;
                 case "getAll" -> getAllResult;
+                case "getAllByOwnerId" -> getAllByOwnerIdResult;
+                case "getAllByParticipantId" -> getAllByParticipantIdResult;
                 default -> null;
             };
         }

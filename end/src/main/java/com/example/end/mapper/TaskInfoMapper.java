@@ -53,4 +53,29 @@ public interface TaskInfoMapper {
             order by id desc
             """)
     List<TaskInfo> selectAll();
+
+    @Select("""
+            select id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time
+            from task_info
+            where project_id in (
+                select id
+                from project_info
+                where owner_id = #{ownerId}
+            )
+            order by id desc
+            """)
+    List<TaskInfo> selectAllByOwnerId(Long ownerId);
+
+    @Select("""
+            select id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time
+            from task_info
+            where project_id in (
+                select distinct project_id
+                from task_info
+                where project_id is not null
+                  and (assignee_id = #{userId} or creator_id = #{userId})
+            )
+            order by id desc
+            """)
+    List<TaskInfo> selectAllByParticipantId(Long userId);
 }

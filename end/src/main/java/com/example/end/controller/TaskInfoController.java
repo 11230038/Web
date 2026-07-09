@@ -90,7 +90,7 @@ public class TaskInfoController {
                 return Result.success(taskInfoService.getAllByOwnerId(accessService.currentUserId()));
             }
             if (currentUser.getRole() == UserRoleConfig.ROLE_EMPLOYEE) {
-                return Result.success(taskInfoService.getAllByParticipantId(accessService.currentUserId()));
+                return Result.success(taskInfoService.getAllByAssigneeId(accessService.currentUserId()));
             }
         }
         return Result.success(taskInfoService.getAll());

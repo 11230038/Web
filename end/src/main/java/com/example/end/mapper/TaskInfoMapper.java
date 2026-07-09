@@ -78,4 +78,12 @@ public interface TaskInfoMapper {
             order by id desc
             """)
     List<TaskInfo> selectAllByParticipantId(Long userId);
+
+    @Select("""
+            select id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion, created_time, updated_time
+            from task_info
+            where assignee_id = #{userId}
+            order by id desc
+            """)
+    List<TaskInfo> selectAllByAssigneeId(Long userId);
 }

@@ -1,5 +1,6 @@
 package com.example.end.service.impl;
 
+import com.example.end.config.UserRoleConfig;
 import com.example.end.mapper.SysUserMapper;
 import com.example.end.auth.PasswordUtil;
 import com.example.end.pojo.SysUser;
@@ -33,14 +34,17 @@ public class SysUserImpl implements SysUserService {
 
     @Override
     public boolean updateById(SysUser sysUser) {
+        SysUser existingUser = sysUserMapper.selectById(sysUser.getId());
+        if (existingUser == null) {
+            return false;
+        }
         if (sysUser.getPassword() == null || sysUser.getPassword().isBlank()) {
-            SysUser existingUser = sysUserMapper.selectById(sysUser.getId());
-            if (existingUser == null) {
-                return false;
-            }
             sysUser.setPassword(existingUser.getPassword());
         } else {
             sysUser.setPassword(PasswordUtil.md5(sysUser.getPassword().trim()));
+        }
+        if (sysUser.getRole() == null) {
+            sysUser.setRole(existingUser.getRole());
         }
         return sysUserMapper.updateById(sysUser) > 0;
     }
@@ -62,6 +66,8 @@ public class SysUserImpl implements SysUserService {
 
     @Override
     public List<SysUser> getAll() {
-        return sysUserMapper.selectAll();
+        return sysUserMapper.selectAll().stream()
+                .filter(user -> user.getRole() == null || user.getRole() != UserRoleConfig.ROLE_ADMIN)
+                .toList();
     }
 }

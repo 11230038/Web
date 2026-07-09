@@ -124,6 +124,20 @@ class TaskLogImplReflectionTest {
         assertEquals(2L, handler.lastArgs[0]);
     }
 
+    @Test
+    void getAllByOperatorIdShouldReturnOperatorTaskLogs() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> taskLogs = List.of(newTaskLog(5, "operator-log"));
+        handler.selectAllByOperatorIdResult = taskLogs;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByOperatorId", new Class<?>[]{Long.class}, 1L);
+
+        assertEquals(taskLogs, result);
+        assertEquals("selectAllByOperatorId", handler.lastMethodName);
+        assertEquals(1L, handler.lastArgs[0]);
+    }
+
     private Object newService(Object mapper) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.impl.TaskLogImpl");
         Class<?> mapperClass = Class.forName("com.example.end.mapper.TaskLogMapper");
@@ -161,6 +175,7 @@ class TaskLogImplReflectionTest {
         private List<Object> selectAllResult = new ArrayList<>();
         private List<Object> selectAllByOwnerIdResult = new ArrayList<>();
         private List<Object> selectAllByParticipantIdResult = new ArrayList<>();
+        private List<Object> selectAllByOperatorIdResult = new ArrayList<>();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -174,6 +189,7 @@ class TaskLogImplReflectionTest {
                 case "selectAll" -> selectAllResult;
                 case "selectAllByOwnerId" -> selectAllByOwnerIdResult;
                 case "selectAllByParticipantId" -> selectAllByParticipantIdResult;
+                case "selectAllByOperatorId" -> selectAllByOperatorIdResult;
                 default -> null;
             };
         }

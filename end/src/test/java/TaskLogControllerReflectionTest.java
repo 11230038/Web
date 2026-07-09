@@ -32,6 +32,7 @@ class TaskLogControllerReflectionTest {
     void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
+        handler.getByIdResult = newTaskLog(1, "first log");
         Object controller = newController(newService(handler), newAccessService(true, 9L));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Integer.class}, 1);
@@ -44,6 +45,7 @@ class TaskLogControllerReflectionTest {
     void updateByIdShouldReturnNotFoundWhenServiceFails() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = false;
+        handler.getByIdResult = newTaskLog(2, "second log");
         Object controller = newController(newService(handler), newAccessService(true, 9L));
         Object taskLog = newTaskLog(2, "second log");
 
@@ -65,6 +67,62 @@ class TaskLogControllerReflectionTest {
 
         assertEquals(200, invokeGetter(result, "getCode"));
         assertSame(taskLog, invokeGetter(result, "getData"));
+    }
+
+    @Test
+    void deleteByIdShouldAllowOperatorToDeleteOwnLog() throws Exception {
+        Recorder handler = new Recorder();
+        handler.deleteResult = true;
+        handler.getByIdResult = newTaskLog(5, "mine");
+        Object controller = newController(newService(handler), newAccessService(false, 1L));
+
+        Object result = invoke(controller, "deleteById", new Class<?>[]{Integer.class}, 5);
+
+        assertEquals("deleteById", handler.lastMethodName);
+        assertEquals(200, invokeGetter(result, "getCode"));
+        assertTrue((Boolean) invokeGetter(result, "getData"));
+    }
+
+    @Test
+    void updateByIdShouldAllowOperatorToUpdateOwnLog() throws Exception {
+        Recorder handler = new Recorder();
+        handler.updateResult = true;
+        handler.getByIdResult = newTaskLog(6, "before");
+        Object controller = newController(newService(handler), newAccessService(false, 1L));
+        Object taskLog = newTaskLog(6, "after");
+        invoke(taskLog, "setOperatorId", new Class<?>[]{Long.class}, 99L);
+
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskLog")}, taskLog);
+
+        assertEquals("updateById", handler.lastMethodName);
+        assertEquals(200, invokeGetter(result, "getCode"));
+        Object updatedLog = handler.lastArgs[0];
+        assertEquals(1L, invokeGetter(updatedLog, "getOperatorId"));
+    }
+
+    @Test
+    void deleteByIdShouldReturnForbiddenWhenNonOwnerDeletesLog() throws Exception {
+        Recorder handler = new Recorder();
+        handler.getByIdResult = newTaskLog(7, "other");
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
+
+        Object result = invoke(controller, "deleteById", new Class<?>[]{Integer.class}, 7);
+
+        assertEquals(403, invokeGetter(result, "getCode"));
+        assertEquals("forbidden", invokeGetter(result, "getMessage"));
+    }
+
+    @Test
+    void updateByIdShouldReturnForbiddenWhenNonOwnerUpdatesLog() throws Exception {
+        Recorder handler = new Recorder();
+        handler.getByIdResult = newTaskLog(8, "other");
+        Object controller = newController(newService(handler), newAccessService(false, 9L));
+        Object taskLog = newTaskLog(8, "try update");
+
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskLog")}, taskLog);
+
+        assertEquals(403, invokeGetter(result, "getCode"));
+        assertEquals("forbidden", invokeGetter(result, "getMessage"));
     }
 
     @Test
@@ -99,12 +157,12 @@ class TaskLogControllerReflectionTest {
     void getAllShouldReturnParticipantTaskLogsForEmployee() throws Exception {
         Recorder handler = new Recorder();
         List<Object> taskLogs = List.of(newTaskLog(4, "employee-log"));
-        handler.getAllByParticipantIdResult = taskLogs;
+        handler.getAllByOperatorIdResult = taskLogs;
         Object controller = newController(newService(handler), newAccessService(false, 2L, 2));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
-        assertEquals("getAllByParticipantId", handler.lastMethodName);
+        assertEquals("getAllByOperatorId", handler.lastMethodName);
         assertEquals(2L, handler.lastArgs[0]);
         assertEquals(200, invokeGetter(result, "getCode"));
         assertEquals(taskLogs, invokeGetter(result, "getData"));
@@ -178,6 +236,7 @@ class TaskLogControllerReflectionTest {
         private List<Object> getAllResult = List.of();
         private List<Object> getAllByOwnerIdResult = List.of();
         private List<Object> getAllByParticipantIdResult = List.of();
+        private List<Object> getAllByOperatorIdResult = List.of();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -191,6 +250,7 @@ class TaskLogControllerReflectionTest {
                 case "getAll" -> getAllResult;
                 case "getAllByOwnerId" -> getAllByOwnerIdResult;
                 case "getAllByParticipantId" -> getAllByParticipantIdResult;
+                case "getAllByOperatorId" -> getAllByOperatorIdResult;
                 default -> null;
             };
         }

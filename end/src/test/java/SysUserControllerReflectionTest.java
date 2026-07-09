@@ -76,6 +76,36 @@ class SysUserControllerReflectionTest {
     }
 
     @Test
+    void updateByIdShouldAllowCurrentUserToUpdateOwnProfile() throws Exception {
+        Recorder handler = new Recorder();
+        handler.updateResult = true;
+        Object currentUser = newUser(2L, "bob");
+        handler.getByIdResult = currentUser;
+        Object controller = newController(newService(handler), newAccessService(false, currentUser));
+        Object user = newUser(2L, "bob");
+
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+
+        assertEquals("updateById", handler.lastMethodName);
+        assertEquals(200, invokeGetter(result, "getCode"));
+        assertEquals("success", invokeGetter(result, "getMessage"));
+        assertTrue((Boolean) invokeGetter(result, "getData"));
+    }
+
+    @Test
+    void updateByIdShouldRejectOtherUserWhenNotManager() throws Exception {
+        Recorder handler = new Recorder();
+        Object controller = newController(newService(handler), newAccessService(false, newUser(1L, "alice")));
+        Object user = newUser(2L, "bob");
+
+        Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+
+        assertEquals(403, invokeGetter(result, "getCode"));
+        assertEquals("forbidden", invokeGetter(result, "getMessage"));
+        assertFalse("updateById".equals(handler.lastMethodName));
+    }
+
+    @Test
     void getByIdShouldDelegateToService() throws Exception {
         Recorder handler = new Recorder();
         Object user = newUser(3L, "carol");

@@ -51,4 +51,9 @@ public class TaskLogImpl implements TaskLogService {
     public List<TaskLog> getAllByParticipantId(Long userId) {
         return taskLogMapper.selectAllByParticipantId(userId);
     }
+
+    @Override
+    public List<TaskLog> getAllByOperatorId(Long userId) {
+        return taskLogMapper.selectAllByOperatorId(userId);
+    }
 }

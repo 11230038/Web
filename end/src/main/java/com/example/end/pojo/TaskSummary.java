@@ -13,7 +13,7 @@ public class TaskSummary {
 
     private Long projectId;
 
-    private Integer taskId;
+    private Long taskId;
 
     private Integer summaryType;
 

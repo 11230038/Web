@@ -22,9 +22,10 @@ export function useWorkspaceApp() {
   const saving = ref(false)
   const errorMessage = ref('')
   const successMessage = ref('')
+  const taskTitles = reactive({})
 
   const loginForm = reactive({
-    username: '1',
+    username: '系统管理员',
     password: '123456',
   })
 
@@ -65,9 +66,34 @@ export function useWorkspaceApp() {
     memberId: null,
   })
 
+  const modalState = reactive({
+    task: false,
+    log: false,
+    summary: false,
+    member: false,
+    profile: false,
+    password: false,
+  })
+
+  const deleteDialog = reactive({
+    open: false,
+    type: '',
+    id: null,
+    title: '',
+    message: '',
+  })
+
   const passwordForm = reactive({
     oldPassword: '',
     newPassword: '',
+  })
+
+  const profileForm = reactive({
+    id: null,
+    username: '',
+    realName: '',
+    email: '',
+    phone: '',
   })
 
   const isAuthed = computed(() => Boolean(token.value && currentUser.value))
@@ -108,6 +134,28 @@ export function useWorkspaceApp() {
   const myTasks = computed(() =>
     collections.tasks.filter((item) => item.assigneeId === currentUser.value?.userId),
   )
+
+  const availableLogTasks = computed(() => {
+    if (isAdmin.value) {
+      return collections.tasks
+    }
+
+    const currentUserId = currentUser.value?.userId
+    const baseTasks = collections.tasks.filter(
+      (item) => item.assigneeId === currentUserId || item.creatorId === currentUserId,
+    )
+
+    if (!editor.log.taskId) {
+      return baseTasks
+    }
+
+    const editingTask = collections.tasks.find((item) => item.id === editor.log.taskId)
+    if (editingTask && !baseTasks.some((item) => item.id === editingTask.id)) {
+      return [...baseTasks, editingTask]
+    }
+
+    return baseTasks
+  })
 
   function setMessage(type, text) {
     errorMessage.value = type === 'error' ? text : ''
@@ -179,6 +227,11 @@ export function useWorkspaceApp() {
     }
   }
 
+  function resetPasswordForm() {
+    passwordForm.oldPassword = ''
+    passwordForm.newPassword = ''
+  }
+
   function logout() {
     token.value = ''
     currentUser.value = null
@@ -200,6 +253,67 @@ export function useWorkspaceApp() {
     localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
   }
 
+  function syncProfileForm() {
+    profileForm.id = currentUser.value?.userId || null
+    profileForm.username = currentUser.value?.username || ''
+    profileForm.realName = currentUser.value?.realName || ''
+    profileForm.email = currentUser.value?.email || ''
+    profileForm.phone = currentUser.value?.phone || ''
+  }
+
+  async function loadCurrentUserProfile() {
+    if (!currentUser.value?.userId) return
+    try {
+      const profile = await api(`/sysUsers/${currentUser.value.userId}`)
+      currentUser.value = {
+        ...currentUser.value,
+        userId: profile.id,
+        username: profile.username,
+        realName: profile.realName,
+        role: profile.role,
+        email: profile.email,
+        phone: profile.phone,
+      }
+      localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+    } catch {
+      // Ignore profile refresh failures and keep the current auth state.
+    }
+  }
+
+  function syncTaskTitles(tasks = []) {
+    Object.keys(taskTitles).forEach((key) => {
+      delete taskTitles[key]
+    })
+    tasks.forEach((item) => {
+      if (item?.id != null && item?.title) {
+        taskTitles[item.id] = item.title
+      }
+    })
+  }
+
+  async function loadMissingTaskTitles(summaryList = []) {
+    const missingIds = [...new Set(summaryList.map((item) => item?.taskId).filter((id) => id != null))]
+      .filter((id) => !taskTitles[id])
+
+    if (!missingIds.length) return
+
+    const fetchedTasks = await Promise.all(
+      missingIds.map(async (id) => {
+        try {
+          return await api(`/taskInfos/${id}`)
+        } catch {
+          return null
+        }
+      }),
+    )
+
+    fetchedTasks.forEach((item) => {
+      if (item?.id != null && item?.title) {
+        taskTitles[item.id] = item.title
+      }
+    })
+  }
+
   async function loadDashboard() {
     if (!isAuthed.value) return
     loading.value = true
@@ -216,7 +330,11 @@ export function useWorkspaceApp() {
       collections.logs = logs
       collections.summaries = summaries
       collections.members = members
+      syncTaskTitles(tasks)
+      await loadMissingTaskTitles(summaries)
+      await loadCurrentUserProfile()
       syncCurrentUserRole()
+      syncProfileForm()
     } catch (error) {
       setMessage('error', error.message)
     } finally {
@@ -251,12 +369,21 @@ export function useWorkspaceApp() {
     return found?.realName || found?.username || `#${id ?? '-'}`
   }
 
+  function normalizeId(value) {
+    const normalized = Number(value)
+    return Number.isFinite(normalized) ? normalized : value
+  }
+
   function projectNameById(id) {
-    return collections.projects.find((item) => item.id === id)?.name || `#${id ?? '-'}`
+    const normalizedId = normalizeId(id)
+    return (
+      collections.projects.find((item) => normalizeId(item.id) === normalizedId)?.name ||
+      `#${id ?? '-'}`
+    )
   }
 
   function taskTitleById(id) {
-    return collections.tasks.find((item) => item.id === id)?.title || `#${id ?? '-'}`
+    return taskTitles[id] || `#${id ?? '-'}`
   }
 
   function findProjectIdForAiImport() {
@@ -327,23 +454,164 @@ export function useWorkspaceApp() {
   }
 
   function editTask(item) {
-    editor.task = { ...item, parentId: item.parentId ?? '' }
+    editor.task = {
+      ...emptyTask(),
+      ...item,
+      parentId: item.parentId ?? '',
+    }
     editing.taskId = item.id
+    modalState.task = true
   }
 
   function editLog(item) {
-    editor.log = { ...item }
+    editor.log = {
+      ...emptyLog(),
+      ...item,
+    }
     editing.logId = item.id
+    modalState.log = true
   }
 
   function editSummary(item) {
-    editor.summary = { ...item }
+    setMessage('error', '总结不支持编辑')
+    return
+    const currentUserId = currentUser.value?.userId
+    if (!isManager.value && item.creatorId !== currentUserId) {
+      setMessage('error', '只有总结创建者本人和管理员可操作')
+      return
+    }
+    editor.summary = {
+      ...emptySummary(),
+      ...item,
+    }
     editing.summaryId = item.id
+    modalState.summary = true
   }
 
   function editMember(item) {
-    editor.member = { ...item, password: '' }
+    if (!isAdmin.value) {
+      setMessage('error', '只有管理员能操作成员列表')
+      return
+    }
+    editor.member = {
+      ...emptyMember(),
+      ...item,
+      password: '',
+    }
     editing.memberId = item.id
+    modalState.member = true
+  }
+
+  function openTaskCreate() {
+    if (isAdmin.value) {
+      setMessage('error', '管理员不显示新增任务功能')
+      return
+    }
+    resetEditor('task')
+    modalState.task = true
+  }
+
+  function closeTaskModal() {
+    modalState.task = false
+    resetEditor('task')
+  }
+
+  function openLogCreate() {
+    if (isAdmin.value) {
+      setMessage('error', '管理员不显示新增记录功能')
+      return
+    }
+    resetEditor('log')
+    modalState.log = true
+  }
+
+  function closeLogModal() {
+    modalState.log = false
+    resetEditor('log')
+  }
+
+  function openSummaryCreate() {
+    if (isAdmin.value) {
+      setMessage('error', '管理员不显示新增总结功能')
+      return
+    }
+    resetEditor('summary')
+    modalState.summary = true
+  }
+
+  function closeSummaryModal() {
+    modalState.summary = false
+    resetEditor('summary')
+  }
+
+  function openMemberCreate() {
+    if (!isAdmin.value) {
+      setMessage('error', '只有管理员能操作成员列表')
+      return
+    }
+    resetEditor('member')
+    modalState.member = true
+  }
+
+  function closeMemberModal() {
+    modalState.member = false
+    resetEditor('member')
+  }
+
+  function openProfileModal() {
+    syncProfileForm()
+    modalState.profile = true
+  }
+
+  function closeProfileModal() {
+    modalState.profile = false
+    syncProfileForm()
+  }
+
+  function openPasswordModal() {
+    resetPasswordForm()
+    modalState.password = true
+  }
+
+  function closePasswordModal() {
+    modalState.password = false
+    resetPasswordForm()
+  }
+
+  function openDeleteDialog(type, id, title, message) {
+    deleteDialog.open = true
+    deleteDialog.type = type
+    deleteDialog.id = id
+    deleteDialog.title = title
+    deleteDialog.message = message
+  }
+
+  function closeDeleteDialog() {
+    deleteDialog.open = false
+    deleteDialog.type = ''
+    deleteDialog.id = null
+    deleteDialog.title = ''
+    deleteDialog.message = ''
+  }
+
+  function requestRemoveProject(id) {
+    openDeleteDialog('project', id, '删除项目', '确认删除这个项目吗？')
+  }
+
+  function requestRemoveTask(id) {
+    openDeleteDialog('task', id, '删除任务', '确认删除这个任务吗？')
+  }
+
+  function requestRemoveLog(id) {
+    openDeleteDialog('log', id, '删除记录', '确认删除这条进度记录吗？')
+  }
+
+  function requestRemoveSummary(id) {
+    openDeleteDialog('summary', id, '删除总结', '确认删除这条总结吗？')
+  }
+
+  function requestRemoveMember(id) {
+    openDeleteDialog('member', id, '删除成员', '确认删除这个成员吗？')
   }
 
   async function submitProject() {
@@ -390,7 +658,6 @@ export function useWorkspaceApp() {
   }
 
   async function removeProject(id) {
-    if (!confirm('确认删除这个项目吗？')) return
     try {
       await api(`/projectInfos/${id}`, { method: 'DELETE' })
       setMessage('success', '项目已删除')
@@ -418,7 +685,7 @@ export function useWorkspaceApp() {
         await api('/taskInfos', { method: 'POST', body: JSON.stringify(payload) })
         setMessage('success', '任务已创建')
       }
-      resetEditor('task')
+      closeTaskModal()
       await loadDashboard()
     } catch (error) {
       setMessage('error', error.message)
@@ -441,7 +708,6 @@ export function useWorkspaceApp() {
   }
 
   async function removeTask(id) {
-    if (!confirm('确认删除这个任务吗？')) return
     try {
       await api(`/taskInfos/${id}`, { method: 'DELETE' })
       setMessage('success', '任务已删除')
@@ -467,7 +733,7 @@ export function useWorkspaceApp() {
         await api('/taskLogs', { method: 'POST', body: JSON.stringify(payload) })
         setMessage('success', '进度记录已新增')
       }
-      resetEditor('log')
+      closeLogModal()
       await loadDashboard()
     } catch (error) {
       setMessage('error', error.message)
@@ -477,7 +743,6 @@ export function useWorkspaceApp() {
   }
 
   async function removeLog(id) {
-    if (!confirm('确认删除这条进度记录吗？')) return
     try {
       await api(`/taskLogs/${id}`, { method: 'DELETE' })
       setMessage('success', '进度记录已删除')
@@ -491,20 +756,25 @@ export function useWorkspaceApp() {
     saving.value = true
     setMessage('', '')
     try {
+      const currentUserId = currentUser.value?.userId
       const payload = {
         ...editor.summary,
-        creatorId: editor.summary.creatorId || currentUser.value?.userId || null,
+        creatorId: editor.summary.creatorId || currentUserId || null,
         projectId: editor.summary.projectId || null,
         taskId: editor.summary.taskId || null,
       }
       if (editing.summaryId) {
+        throw new Error('总结不支持编辑')
+        if (!isManager.value && payload.creatorId !== currentUserId) {
+          throw new Error('只有总结创建者本人和管理员可操作')
+        }
         await api('/taskSummaries', { method: 'PUT', body: JSON.stringify(payload) })
         setMessage('success', '总结已更新')
       } else {
         await api('/taskSummaries', { method: 'POST', body: JSON.stringify(payload) })
         setMessage('success', '总结已新增')
       }
-      resetEditor('summary')
+      closeSummaryModal()
       await loadDashboard()
     } catch (error) {
       setMessage('error', error.message)
@@ -514,7 +784,6 @@ export function useWorkspaceApp() {
   }
 
   async function removeSummary(id) {
-    if (!confirm('确认删除这条总结吗？')) return
     try {
       await api(`/taskSummaries/${id}`, { method: 'DELETE' })
       setMessage('success', '总结已删除')
@@ -528,6 +797,9 @@ export function useWorkspaceApp() {
     saving.value = true
     setMessage('', '')
     try {
+      if (!isAdmin.value) {
+        throw new Error('只有管理员能操作成员列表')
+      }
       if (!editing.memberId && !isAdmin.value) {
         throw new Error('只有管理员可以新增成员')
       }
@@ -542,7 +814,7 @@ export function useWorkspaceApp() {
         await api('/sysUsers', { method: 'POST', body: JSON.stringify(payload) })
         setMessage('success', '成员已新增')
       }
-      resetEditor('member')
+      closeMemberModal()
       await loadDashboard()
     } catch (error) {
       setMessage('error', error.message)
@@ -551,14 +823,79 @@ export function useWorkspaceApp() {
     }
   }
 
-  async function removeMember(id) {
-    if (!confirm('确认删除这个成员吗？')) return
+  async function submitProfile() {
+    saving.value = true
+    setMessage('', '')
     try {
+      const payload = {
+        id: profileForm.id || currentUser.value?.userId || null,
+        username: profileForm.username,
+        realName: profileForm.realName,
+        email: profileForm.email,
+        phone: profileForm.phone,
+      }
+      await api('/sysUsers', { method: 'PUT', body: JSON.stringify(payload) })
+      const latestUser = await api(`/sysUsers/${payload.id}`)
+      currentUser.value = {
+        ...currentUser.value,
+        userId: latestUser.id,
+        username: latestUser.username,
+        realName: latestUser.realName,
+        role: latestUser.role,
+        email: latestUser.email,
+        phone: latestUser.phone,
+      }
+      localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+      closeProfileModal()
+      await loadDashboard()
+      setMessage('success', '个人信息已更新')
+    } catch (error) {
+      setMessage('error', error.message)
+    } finally {
+      saving.value = false
+    }
+  }
+
+  async function removeMember(id) {
+    try {
+      if (!isAdmin.value) {
+        throw new Error('只有管理员能操作成员列表')
+      }
       await api(`/sysUsers/${id}`, { method: 'DELETE' })
       setMessage('success', '成员已删除')
       await loadDashboard()
     } catch (error) {
       setMessage('error', error.message)
+    }
+  }
+
+  async function confirmDelete() {
+    const { type, id } = deleteDialog
+    if (!type || id == null) {
+      closeDeleteDialog()
+      return
+    }
+
+    closeDeleteDialog()
+
+    if (type === 'project') {
+      await removeProject(id)
+      return
+    }
+    if (type === 'task') {
+      await removeTask(id)
+      return
+    }
+    if (type === 'log') {
+      await removeLog(id)
+      return
+    }
+    if (type === 'summary') {
+      await removeSummary(id)
+      return
+    }
+    if (type === 'member') {
+      await removeMember(id)
     }
   }
 
@@ -660,8 +997,7 @@ export function useWorkspaceApp() {
         method: 'POST',
         body: JSON.stringify(passwordForm),
       })
-      passwordForm.oldPassword = ''
-      passwordForm.newPassword = ''
+      closePasswordModal()
       setMessage('success', '密码已更新')
     } catch (error) {
       setMessage('error', error.message)
@@ -678,15 +1014,25 @@ export function useWorkspaceApp() {
     activeMenu,
     activeMenuLabel,
     aiForm,
+    availableLogTasks,
     breakdownResult,
     canCreateProject,
     canUseAiWorkspace,
     canViewProjectForm,
+    closeDeleteDialog,
+    closeLogModal,
+    closeMemberModal,
+    closePasswordModal,
+    closeProfileModal,
     closeProjectWorkspace,
+    closeSummaryModal,
+    closeTaskModal,
     changePassword,
+    confirmDelete,
     collections,
     createProjectNeedsBreakdown,
     currentUser,
+    deleteDialog,
     editLog,
     editMember,
     editProject,
@@ -705,14 +1051,27 @@ export function useWorkspaceApp() {
     login,
     loginForm,
     logout,
+    modalState,
     myTasks,
+    openLogCreate,
+    openMemberCreate,
+    openPasswordModal,
+    openProfileModal,
     openProjectWorkspace,
+    openSummaryCreate,
+    openTaskCreate,
     overviewCards,
     passwordForm,
+    profileForm,
     priorityLabel,
     projectNameById,
     projectStatusLabel,
     projectWorkspaceOpen,
+    requestRemoveLog,
+    requestRemoveMember,
+    requestRemoveProject,
+    requestRemoveSummary,
+    requestRemoveTask,
     removeLog,
     removeMember,
     removeProject,
@@ -727,6 +1086,7 @@ export function useWorkspaceApp() {
     showBreakdownWorkspace,
     submitLog,
     submitMember,
+    submitProfile,
     submitProject,
     submitSummary,
     submitTask,

@@ -125,6 +125,20 @@ class TaskInfoImplReflectionTest {
         assertEquals(2L, handler.lastArgs[0]);
     }
 
+    @Test
+    void getAllByAssigneeIdShouldReturnOwnTasks() throws Exception {
+        Recorder handler = new Recorder();
+        List<Object> tasks = List.of(newTask(5L, "own-task"));
+        handler.selectAllByAssigneeIdResult = tasks;
+        Object service = newService(newMapper(handler));
+
+        Object result = invoke(service, "getAllByAssigneeId", new Class<?>[]{Long.class}, 2L);
+
+        assertEquals(tasks, result);
+        assertEquals("selectAllByAssigneeId", handler.lastMethodName);
+        assertEquals(2L, handler.lastArgs[0]);
+    }
+
     private Object newService(Object mapper) throws Exception {
         Class<?> serviceClass = Class.forName("com.example.end.service.impl.TaskInfoImpl");
         Class<?> mapperClass = Class.forName("com.example.end.mapper.TaskInfoMapper");
@@ -168,6 +182,7 @@ class TaskInfoImplReflectionTest {
         private List<Object> selectAllResult = new ArrayList<>();
         private List<Object> selectAllByOwnerIdResult = new ArrayList<>();
         private List<Object> selectAllByParticipantIdResult = new ArrayList<>();
+        private List<Object> selectAllByAssigneeIdResult = new ArrayList<>();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -181,6 +196,7 @@ class TaskInfoImplReflectionTest {
                 case "selectAll" -> selectAllResult;
                 case "selectAllByOwnerId" -> selectAllByOwnerIdResult;
                 case "selectAllByParticipantId" -> selectAllByParticipantIdResult;
+                case "selectAllByAssigneeId" -> selectAllByAssigneeIdResult;
                 default -> null;
             };
         }

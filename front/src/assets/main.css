@@ -420,6 +420,10 @@ textarea:focus {
   box-shadow: var(--shadow);
 }
 
+.action-dialog {
+  width: min(720px, 100%);
+}
+
 .workspace-header {
   margin-bottom: 20px;
 }
@@ -444,6 +448,34 @@ textarea:focus {
   margin-top: 18px;
 }
 
+.pagination-bar {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pagination-meta,
+.pagination-actions,
+.pagination-size {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pagination-size {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pagination-size select {
+  width: auto;
+  min-width: 72px;
+}
+
 .profile-card {
   display: grid;
   gap: 12px;
@@ -452,6 +484,60 @@ textarea:focus {
 
 .profile-card p {
   margin: 0;
+}
+
+.delete-dialog {
+  display: grid;
+  gap: 18px;
+}
+
+.delete-dialog__hero {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(185, 65, 65, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 244, 241, 0.92));
+  border: 1px solid rgba(185, 65, 65, 0.18);
+}
+
+.delete-dialog__badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(185, 65, 65, 0.12);
+  color: #9b3535;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.delete-dialog__hero strong {
+  font-size: 22px;
+  line-height: 1.2;
+  color: #7f2525;
+}
+
+.delete-dialog__hero p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.delete-dialog__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.danger-fill {
+  background: linear-gradient(135deg, #bf4545 0%, #df6a52 100%);
+  box-shadow: 0 14px 30px rgba(191, 69, 69, 0.18);
 }
 
 code {

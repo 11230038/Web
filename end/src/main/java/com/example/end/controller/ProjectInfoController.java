@@ -84,28 +84,15 @@ public class ProjectInfoController {
 
     @GetMapping("/{id}")
     public Result<ProjectInfo> getById(@PathVariable Long id) {
-        var currentUser = accessService.currentUser();
         ProjectInfo projectInfo = projectInfoService.getById(id);
         if (projectInfo == null) {
             return Result.error(404, "project not found");
-        }
-        if (currentUser != null
-                && currentUser.getRole() != null
-                && currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER
-                && !accessService.isCurrentUser(projectInfo.getOwnerId())) {
-            return forbidden();
         }
         return Result.success(projectInfo);
     }
 
     @GetMapping
     public Result<List<ProjectInfo>> getAll() {
-        var currentUser = accessService.currentUser();
-        if (currentUser != null
-                && currentUser.getRole() != null
-                && currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER) {
-            return Result.success(projectInfoService.getAllByOwnerId(accessService.currentUserId()));
-        }
         return Result.success(projectInfoService.getAll());
     }
 

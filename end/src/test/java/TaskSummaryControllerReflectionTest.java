@@ -18,7 +18,7 @@ class TaskSummaryControllerReflectionTest {
         Recorder handler = new Recorder();
         Object taskSummary = newTaskSummary(1L, 0);
         handler.addResult = taskSummary;
-        Object controller = newController(newService(handler), newAccessService(false, 9L));
+        Object controller = newController(newService(handler), newAccessService(false, 9L), newTaskInfoService(1L, 1L));
 
         Object result = invoke(controller, "add", new Class<?>[]{Class.forName("com.example.end.pojo.TaskSummary")}, taskSummary);
 
@@ -32,7 +32,7 @@ class TaskSummaryControllerReflectionTest {
     void deleteByIdShouldReturnSuccessWhenDeleted() throws Exception {
         Recorder handler = new Recorder();
         handler.deleteResult = true;
-        Object controller = newController(newService(handler), newAccessService(true, 9L));
+        Object controller = newController(newService(handler), newAccessService(true, 9L), newTaskInfoService(1L, 1L));
 
         Object result = invoke(controller, "deleteById", new Class<?>[]{Long.class}, 1L);
 
@@ -44,7 +44,7 @@ class TaskSummaryControllerReflectionTest {
     void updateByIdShouldReturnNotFoundWhenServiceFails() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = false;
-        Object controller = newController(newService(handler), newAccessService(true, 9L));
+        Object controller = newController(newService(handler), newAccessService(true, 9L), newTaskInfoService(1L, 1L));
         Object taskSummary = newTaskSummary(2L, 1);
 
         Object result = invoke(controller, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.TaskSummary")}, taskSummary);
@@ -59,7 +59,7 @@ class TaskSummaryControllerReflectionTest {
         Recorder handler = new Recorder();
         Object taskSummary = newTaskSummary(3L, 1);
         handler.getByIdResult = taskSummary;
-        Object controller = newController(newService(handler), newAccessService(false, 9L));
+        Object controller = newController(newService(handler), newAccessService(false, 9L), newTaskInfoService(1L, 1L));
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
@@ -72,7 +72,7 @@ class TaskSummaryControllerReflectionTest {
         Recorder handler = new Recorder();
         List<Object> taskSummaries = List.of(newTaskSummary(1L, 0), newTaskSummary(2L, 1));
         handler.getAllResult = taskSummaries;
-        Object controller = newController(newService(handler), newAccessService(false, 9L));
+        Object controller = newController(newService(handler), newAccessService(false, 9L), newTaskInfoService(1L, 1L));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
@@ -80,42 +80,13 @@ class TaskSummaryControllerReflectionTest {
         assertEquals(taskSummaries, invokeGetter(result, "getData"));
     }
 
-    @Test
-    void getAllShouldReturnOwnerTaskSummariesForProjectOwner() throws Exception {
-        Recorder handler = new Recorder();
-        List<Object> taskSummaries = List.of(newTaskSummary(3L, 0));
-        handler.getAllByOwnerIdResult = taskSummaries;
-        Object controller = newController(newService(handler), newAccessService(false, 9L, 1));
-
-        Object result = invoke(controller, "getAll", new Class<?>[0]);
-
-        assertEquals("getAllByOwnerId", handler.lastMethodName);
-        assertEquals(9L, handler.lastArgs[0]);
-        assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals(taskSummaries, invokeGetter(result, "getData"));
-    }
-
-    @Test
-    void getAllShouldReturnParticipantTaskSummariesForEmployee() throws Exception {
-        Recorder handler = new Recorder();
-        List<Object> taskSummaries = List.of(newTaskSummary(4L, 1));
-        handler.getAllByParticipantIdResult = taskSummaries;
-        Object controller = newController(newService(handler), newAccessService(false, 2L, 2));
-
-        Object result = invoke(controller, "getAll", new Class<?>[0]);
-
-        assertEquals("getAllByParticipantId", handler.lastMethodName);
-        assertEquals(2L, handler.lastArgs[0]);
-        assertEquals(200, invokeGetter(result, "getCode"));
-        assertEquals(taskSummaries, invokeGetter(result, "getData"));
-    }
-
-    private Object newController(Object service, Object accessService) throws Exception {
+    private Object newController(Object service, Object accessService, Object taskInfoService) throws Exception {
         Class<?> controllerClass = Class.forName("com.example.end.controller.TaskSummaryController");
         Class<?> serviceClass = Class.forName("com.example.end.service.TaskSummaryService");
         Class<?> accessServiceClass = Class.forName("com.example.end.auth.AccessService");
-        Constructor<?> constructor = controllerClass.getConstructor(serviceClass, accessServiceClass);
-        return constructor.newInstance(service, accessService);
+        Class<?> taskInfoServiceClass = Class.forName("com.example.end.service.TaskInfoService");
+        Constructor<?> constructor = controllerClass.getConstructor(serviceClass, accessServiceClass, taskInfoServiceClass);
+        return constructor.newInstance(service, accessService, taskInfoService);
     }
 
     private Object newService(Recorder handler) throws Exception {
@@ -139,6 +110,24 @@ class TaskSummaryControllerReflectionTest {
         });
     }
 
+    private Object newTaskInfoService(Long taskId, Long projectId) throws Exception {
+        Class<?> taskInfoServiceClass = Class.forName("com.example.end.service.TaskInfoService");
+        return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{taskInfoServiceClass}, (proxy, method, args) -> {
+            if (!"getById".equals(method.getName()) || args == null || args.length == 0) {
+                return null;
+            }
+            Long requestedId = (Long) args[0];
+            if (!requestedId.equals(taskId)) {
+                return null;
+            }
+            Class<?> taskInfoClass = Class.forName("com.example.end.pojo.TaskInfo");
+            Object taskInfo = taskInfoClass.getConstructor().newInstance();
+            invoke(taskInfo, "setId", new Class<?>[]{Long.class}, taskId);
+            invoke(taskInfo, "setProjectId", new Class<?>[]{Long.class}, projectId);
+            return taskInfo;
+        });
+    }
+
     private Object newUser(Long id, Integer role) throws Exception {
         Class<?> userClass = Class.forName("com.example.end.pojo.SysUser");
         Object user = userClass.getConstructor().newInstance();
@@ -153,7 +142,7 @@ class TaskSummaryControllerReflectionTest {
         invoke(taskSummary, "setId", new Class<?>[]{Long.class}, id);
         invoke(taskSummary, "setCreatorId", new Class<?>[]{Long.class}, 1L);
         invoke(taskSummary, "setProjectId", new Class<?>[]{Long.class}, 1L);
-        invoke(taskSummary, "setTaskId", new Class<?>[]{Integer.class}, 1);
+        invoke(taskSummary, "setTaskId", new Class<?>[]{Long.class}, 1L);
         invoke(taskSummary, "setSummaryType", new Class<?>[]{Integer.class}, summaryType);
         invoke(taskSummary, "setContent", new Class<?>[]{String.class}, "content");
         return taskSummary;
@@ -177,8 +166,6 @@ class TaskSummaryControllerReflectionTest {
         private boolean updateResult;
         private Object getByIdResult;
         private List<Object> getAllResult = List.of();
-        private List<Object> getAllByOwnerIdResult = List.of();
-        private List<Object> getAllByParticipantIdResult = List.of();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -190,8 +177,6 @@ class TaskSummaryControllerReflectionTest {
                 case "updateById" -> updateResult;
                 case "getById" -> getByIdResult;
                 case "getAll" -> getAllResult;
-                case "getAllByOwnerId" -> getAllByOwnerIdResult;
-                case "getAllByParticipantId" -> getAllByParticipantIdResult;
                 default -> null;
             };
         }

@@ -55,8 +55,20 @@ public class SysUserController {
 
     @PutMapping
     public Result<Boolean> updateById(@RequestBody SysUser sysUser) {
+        SysUser currentUser = accessService.currentUser();
+        if (currentUser == null) {
+            return Result.error(401, "unauthorized");
+        }
         if (!accessService.isManager()) {
-            return forbidden();
+            if (sysUser == null || !accessService.isCurrentUser(sysUser.getId())) {
+                return forbidden();
+            }
+            SysUser existingUser = sysUserService.getById(sysUser.getId());
+            if (existingUser == null) {
+                return Result.error(404, "user not found");
+            }
+            sysUser.setPassword(existingUser.getPassword());
+            sysUser.setRole(existingUser.getRole());
         }
         boolean updated = sysUserService.updateById(sysUser);
         if (!updated) {

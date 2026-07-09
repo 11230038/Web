@@ -19,4 +19,6 @@ public interface TaskLogService {
     List<TaskLog> getAllByOwnerId(Long ownerId);
 
     List<TaskLog> getAllByParticipantId(Long userId);
+
+    List<TaskLog> getAllByOperatorId(Long userId);
 }

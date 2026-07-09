@@ -1,5 +1,8 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue'
+import PaginationControls from '../PaginationControls.vue'
+
+const props = defineProps({
   canCreateProject: { type: Boolean, default: false },
   collections: { type: Object, required: true },
   isManager: { type: Boolean, default: false },
@@ -9,6 +12,22 @@ defineProps({
 })
 
 defineEmits(['create-project', 'edit-project', 'remove-project'])
+
+const page = ref(1)
+const pageSize = ref(5)
+const pageSizeOptions = [5, 10, 12]
+
+const totalPages = computed(() => Math.max(1, Math.ceil(props.collections.projects.length / pageSize.value)))
+const pagedProjects = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return props.collections.projects.slice(start, start + pageSize.value)
+})
+
+watch([() => props.collections.projects.length, pageSize], () => {
+  if (page.value > totalPages.value) {
+    page.value = totalPages.value
+  }
+})
 </script>
 
 <template>
@@ -36,7 +55,7 @@ defineEmits(['create-project', 'edit-project', 'remove-project'])
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in collections.projects" :key="item.id">
+          <tr v-for="item in pagedProjects" :key="item.id">
             <td>{{ item.name }}</td>
             <td>{{ userNameById(item.ownerId) }}</td>
             <td>{{ priorityLabel(item.priority) }}</td>
@@ -49,6 +68,16 @@ defineEmits(['create-project', 'edit-project', 'remove-project'])
           </tr>
         </tbody>
       </table>
+
+      <PaginationControls
+        :page="page"
+        :page-size="pageSize"
+        :page-size-options="pageSizeOptions"
+        :total="collections.projects.length"
+        :total-pages="totalPages"
+        @update:page="page = $event"
+        @update:page-size="pageSize = $event; page = 1"
+      />
     </article>
   </section>
 </template>

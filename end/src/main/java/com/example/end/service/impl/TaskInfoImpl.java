@@ -51,4 +51,9 @@ public class TaskInfoImpl implements TaskInfoService {
     public List<TaskInfo> getAllByParticipantId(Long userId) {
         return taskInfoMapper.selectAllByParticipantId(userId);
     }
+
+    @Override
+    public List<TaskInfo> getAllByAssigneeId(Long userId) {
+        return taskInfoMapper.selectAllByAssigneeId(userId);
+    }
 }

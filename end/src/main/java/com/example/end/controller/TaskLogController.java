@@ -38,7 +38,11 @@ public class TaskLogController {
 
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Integer id) {
-        if (!accessService.isManager()) {
+        TaskLog existingLog = taskLogService.getById(id);
+        if (existingLog == null) {
+            return Result.error(404, "task log not found");
+        }
+        if (!accessService.isManager() && !accessService.isCurrentUser(existingLog.getOperatorId())) {
             return forbidden();
         }
         boolean deleted = taskLogService.deleteById(id);
@@ -50,10 +54,19 @@ public class TaskLogController {
 
     @PutMapping
     public Result<Boolean> updateById(@RequestBody TaskLog taskLog) {
-        if (!accessService.isManager()) {
-            return forbidden();
+        TaskLog existingLog = taskLogService.getById(taskLog.getId());
+        if (existingLog == null) {
+            return Result.error(404, "task log not found");
         }
-        boolean updated = taskLogService.updateById(taskLog);
+
+        TaskLog targetLog = taskLog;
+        if (!accessService.isManager()) {
+            if (!accessService.isCurrentUser(existingLog.getOperatorId())) {
+                return forbidden();
+            }
+            targetLog = copyForSelfUpdate(existingLog, taskLog);
+        }
+        boolean updated = taskLogService.updateById(targetLog);
         if (!updated) {
             return Result.error(404, "task log not found");
         }
@@ -77,7 +90,7 @@ public class TaskLogController {
                 return Result.success(taskLogService.getAllByOwnerId(accessService.currentUserId()));
             }
             if (currentUser.getRole() == UserRoleConfig.ROLE_EMPLOYEE) {
-                return Result.success(taskLogService.getAllByParticipantId(accessService.currentUserId()));
+                return Result.success(taskLogService.getAllByOperatorId(accessService.currentUserId()));
             }
         }
         return Result.success(taskLogService.getAll());
@@ -85,5 +98,15 @@ public class TaskLogController {
 
     private <T> Result<T> forbidden() {
         return Result.error(403, "forbidden");
+    }
+
+    private TaskLog copyForSelfUpdate(TaskLog existingLog, TaskLog incomingLog) {
+        TaskLog targetLog = new TaskLog();
+        targetLog.setId(existingLog.getId());
+        targetLog.setOperatorId(existingLog.getOperatorId());
+        targetLog.setTaskId(incomingLog.getTaskId() == null ? existingLog.getTaskId() : incomingLog.getTaskId());
+        targetLog.setProgressPercent(incomingLog.getProgressPercent() == null ? existingLog.getProgressPercent() : incomingLog.getProgressPercent());
+        targetLog.setContent(incomingLog.getContent() == null ? existingLog.getContent() : incomingLog.getContent());
+        return targetLog;
     }
 }

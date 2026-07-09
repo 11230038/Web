@@ -115,7 +115,7 @@ class ProjectInfoControllerReflectionTest {
     }
 
     @Test
-    void getByIdShouldReturnForbiddenWhenOwnerViewsOtherProject() throws Exception {
+    void getByIdShouldReturnWrappedProjectWhenOwnerViewsOtherProject() throws Exception {
         Recorder handler = new Recorder();
         Object project = newProject(3L, "ship");
         handler.getByIdResult = project;
@@ -127,8 +127,8 @@ class ProjectInfoControllerReflectionTest {
 
         Object result = invoke(controller, "getById", new Class<?>[]{Long.class}, 3L);
 
-        assertEquals(403, invokeGetter(result, "getCode"));
-        assertEquals("forbidden", invokeGetter(result, "getMessage"));
+        assertEquals(200, invokeGetter(result, "getCode"));
+        assertSame(project, invokeGetter(result, "getData"));
     }
 
     @Test
@@ -145,10 +145,10 @@ class ProjectInfoControllerReflectionTest {
     }
 
     @Test
-    void getAllShouldReturnOwnerProjectsForProjectOwner() throws Exception {
+    void getAllShouldReturnWrappedListForProjectOwner() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> projects = List.of(newProject(9L, "mine"));
-        handler.getAllByOwnerIdResult = projects;
+        List<Object> projects = List.of(newProject(9L, "mine"), newProject(2L, "shared"));
+        handler.getAllResult = projects;
         Object controller = newController(
                 newService(handler),
                 newAccessService(false, 9L, newUser(9L, 1)),
@@ -157,8 +157,7 @@ class ProjectInfoControllerReflectionTest {
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
-        assertEquals("getAllByOwnerId", handler.lastMethodName);
-        assertEquals(9L, handler.lastArgs[0]);
+        assertEquals("getAll", handler.lastMethodName);
         assertEquals(200, invokeGetter(result, "getCode"));
         assertEquals(projects, invokeGetter(result, "getData"));
     }

@@ -1,9 +1,16 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue'
+import ActionModal from '../ActionModal.vue'
+import PaginationControls from '../PaginationControls.vue'
+import { ROLE_OWNER } from '../../../constants/workspace'
+
+const props = defineProps({
   collections: { type: Object, required: true },
+  currentUser: { type: Object, required: true },
   editing: { type: Object, required: true },
   editor: { type: Object, required: true },
   isManager: { type: Boolean, default: false },
+  modalOpen: { type: Boolean, default: false },
   projectNameById: { type: Function, required: true },
   saving: { type: Boolean, default: false },
   summaryTypeLabel: { type: Function, required: true },
@@ -11,7 +18,55 @@ defineProps({
   userNameById: { type: Function, required: true },
 })
 
-defineEmits(['edit-summary', 'remove-summary', 'reset-summary', 'submit-summary'])
+defineEmits([
+  'close-summary-modal',
+  'edit-summary',
+  'open-summary-create',
+  'remove-summary',
+  'submit-summary',
+])
+
+const page = ref(1)
+const pageSize = ref(5)
+const pageSizeOptions = [5, 10, 12]
+
+const totalPages = computed(() => Math.max(1, Math.ceil(props.collections.summaries.length / pageSize.value)))
+const pagedSummaries = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return props.collections.summaries.slice(start, start + pageSize.value)
+})
+
+const availableProjects = computed(() => {
+  if (Number(props.currentUser?.role) !== ROLE_OWNER) {
+    return props.collections.projects
+  }
+
+  return props.collections.projects.filter(
+    (item) => Number(item.ownerId) === Number(props.currentUser.userId),
+  )
+})
+
+watch([() => props.collections.summaries.length, pageSize], () => {
+  if (page.value > totalPages.value) {
+    page.value = totalPages.value
+  }
+})
+
+watch(
+  availableProjects,
+  (projects) => {
+    if (props.editing.summaryId) {
+      return
+    }
+
+    const currentProjectId = Number(props.editor.summary.projectId)
+    const exists = projects.some((item) => Number(item.id) === currentProjectId)
+    if (!exists) {
+      props.editor.summary.projectId = projects[0]?.id ?? ''
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -19,7 +74,10 @@ defineEmits(['edit-summary', 'remove-summary', 'reset-summary', 'submit-summary'
     <article class="panel wide">
       <div class="panel-head">
         <h3>总结列表</h3>
-        <span>{{ collections.summaries.length }} 条</span>
+        <div class="actions">
+          <span>{{ collections.summaries.length }} 条</span>
+          <button v-if="Number(currentUser?.role) !== 0" class="primary-btn" @click="$emit('open-summary-create')">新增总结</button>
+        </div>
       </div>
 
       <table class="data-table">
@@ -30,53 +88,74 @@ defineEmits(['edit-summary', 'remove-summary', 'reset-summary', 'submit-summary'
             <th>创建人</th>
             <th>类型</th>
             <th>内容</th>
-            <th v-if="isManager">操作</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in collections.summaries" :key="item.id">
+          <tr v-for="item in pagedSummaries" :key="item.id">
             <td>{{ projectNameById(item.projectId) }}</td>
             <td>{{ taskTitleById(item.taskId) }}</td>
             <td>{{ userNameById(item.creatorId) }}</td>
             <td>{{ summaryTypeLabel(item.summaryType) }}</td>
             <td>{{ item.content }}</td>
-            <td v-if="isManager" class="actions">
-              <button class="text-btn" @click="$emit('edit-summary', item)">编辑</button>
-              <button class="text-btn danger" @click="$emit('remove-summary', item.id)">删除</button>
+            <td class="actions">
+                <button class="text-btn danger" @click="$emit('remove-summary', item.id)">删除</button>
             </td>
           </tr>
         </tbody>
       </table>
+
+      <PaginationControls
+        :page="page"
+        :page-size="pageSize"
+        :page-size-options="pageSizeOptions"
+        :total="collections.summaries.length"
+        :total-pages="totalPages"
+        @update:page="page = $event"
+        @update:page-size="pageSize = $event; page = 1"
+      />
     </article>
 
-    <article class="panel">
-      <div class="panel-head">
-        <h3>{{ editing.summaryId ? '编辑总结' : '新增总结' }}</h3>
-        <button class="text-btn" @click="$emit('reset-summary')">清空</button>
-      </div>
-
+    <ActionModal
+      :open="modalOpen"
+      :title="editing.summaryId ? '编辑总结' : '新增总结'"
+      @close="$emit('close-summary-modal')"
+    >
       <form class="form-grid" @submit.prevent="$emit('submit-summary')">
-        <label>
+        <label v-if="editing.summaryId">
+          所属项目
+          <input :value="projectNameById(editor.summary.projectId)" readonly />
+        </label>
+
+        <label v-else>
           所属项目
           <select v-model.number="editor.summary.projectId" required>
-            <option value="">请选择项目</option>
-            <option v-for="item in collections.projects" :key="item.id" :value="item.id">
+            <option v-for="item in availableProjects" :key="item.id" :value="item.id">
               {{ item.name }}
             </option>
           </select>
         </label>
 
-        <label>
+        <label v-if="editing.summaryId">
+          关联任务
+          <input :value="taskTitleById(editor.summary.taskId)" readonly />
+        </label>
+
+        <label v-else>
           关联任务
           <select v-model.number="editor.summary.taskId" required>
-            <option value="">请选择任务</option>
             <option v-for="item in collections.tasks" :key="item.id" :value="item.id">
               {{ item.title }}
             </option>
           </select>
         </label>
 
-        <label>
+        <label v-if="editing.summaryId">
+          总结类型
+          <input :value="summaryTypeLabel(editor.summary.summaryType)" readonly />
+        </label>
+
+        <label v-else>
           总结类型
           <select v-model.number="editor.summary.summaryType">
             <option :value="0">阶段总结</option>
@@ -93,6 +172,6 @@ defineEmits(['edit-summary', 'remove-summary', 'reset-summary', 'submit-summary'
           {{ saving ? '提交中...' : editing.summaryId ? '保存总结' : '新增总结' }}
         </button>
       </form>
-    </article>
+    </ActionModal>
   </section>
 </template>

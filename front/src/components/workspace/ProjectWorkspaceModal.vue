@@ -59,12 +59,7 @@ defineEmits([
 
             <label v-if="editing.projectId">
               项目负责人
-              <select v-model.number="editor.project.ownerId">
-                <option value="">默认当前负责人</option>
-                <option v-for="item in collections.members" :key="item.id" :value="item.id">
-                  {{ item.realName || item.username }}
-                </option>
-              </select>
+              <input :value="userNameById(editor.project.ownerId)" readonly />
             </label>
 
             <label class="full">
@@ -109,7 +104,7 @@ defineEmits([
                 />
                 <span>创建后立即进入 AI 拆解</span>
               </span>
-              <small>只有新增项目时才会触发这个步骤。</small>
+              <small>只有新增项目时才会触发这一步。</small>
             </label>
 
             <button class="primary-btn full" :disabled="saving">

@@ -74,4 +74,12 @@ public interface TaskLogMapper {
             order by tl.id desc
             """)
     List<TaskLog> selectAllByParticipantId(Long userId);
+
+    @Select("""
+            select id, operator_id, task_id, progress_percent, content, created_time, updated_time
+            from task_log
+            where operator_id = #{userId}
+            order by id desc
+            """)
+    List<TaskLog> selectAllByOperatorId(Long userId);
 }

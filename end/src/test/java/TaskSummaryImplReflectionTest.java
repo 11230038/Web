@@ -142,7 +142,7 @@ class TaskSummaryImplReflectionTest {
         invoke(taskSummary, "setId", new Class<?>[]{Long.class}, id);
         invoke(taskSummary, "setCreatorId", new Class<?>[]{Long.class}, 1L);
         invoke(taskSummary, "setProjectId", new Class<?>[]{Long.class}, 1L);
-        invoke(taskSummary, "setTaskId", new Class<?>[]{Integer.class}, 1);
+        invoke(taskSummary, "setTaskId", new Class<?>[]{Long.class}, 1L);
         invoke(taskSummary, "setSummaryType", new Class<?>[]{Integer.class}, summaryType);
         invoke(taskSummary, "setContent", new Class<?>[]{String.class}, "content");
         return taskSummary;

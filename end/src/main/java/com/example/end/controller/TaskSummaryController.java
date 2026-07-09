@@ -1,9 +1,10 @@
 package com.example.end.controller;
 
 import com.example.end.auth.AccessService;
-import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.Result;
+import com.example.end.pojo.TaskInfo;
 import com.example.end.pojo.TaskSummary;
+import com.example.end.service.TaskInfoService;
 import com.example.end.service.TaskSummaryService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,14 +23,24 @@ public class TaskSummaryController {
 
     private final TaskSummaryService taskSummaryService;
     private final AccessService accessService;
+    private final TaskInfoService taskInfoService;
 
-    public TaskSummaryController(TaskSummaryService taskSummaryService, AccessService accessService) {
+    public TaskSummaryController(
+            TaskSummaryService taskSummaryService,
+            AccessService accessService,
+            TaskInfoService taskInfoService
+    ) {
         this.taskSummaryService = taskSummaryService;
         this.accessService = accessService;
+        this.taskInfoService = taskInfoService;
     }
 
     @PostMapping
     public Result<TaskSummary> add(@RequestBody TaskSummary taskSummary) {
+        Result<TaskSummary> validationResult = validateTaskAssociation(taskSummary);
+        if (validationResult != null) {
+            return validationResult;
+        }
         if (taskSummary.getCreatorId() == null) {
             taskSummary.setCreatorId(accessService.currentUserId());
         }
@@ -53,6 +64,10 @@ public class TaskSummaryController {
         if (!accessService.isManager()) {
             return forbidden();
         }
+        Result<Boolean> validationResult = validateTaskAssociation(taskSummary);
+        if (validationResult != null) {
+            return validationResult;
+        }
         boolean updated = taskSummaryService.updateById(taskSummary);
         if (!updated) {
             return Result.error(404, "task summary not found");
@@ -71,19 +86,28 @@ public class TaskSummaryController {
 
     @GetMapping
     public Result<List<TaskSummary>> getAll() {
-        var currentUser = accessService.currentUser();
-        if (currentUser != null && currentUser.getRole() != null) {
-            if (currentUser.getRole() == UserRoleConfig.ROLE_PROJECT_OWNER) {
-                return Result.success(taskSummaryService.getAllByOwnerId(accessService.currentUserId()));
-            }
-            if (currentUser.getRole() == UserRoleConfig.ROLE_EMPLOYEE) {
-                return Result.success(taskSummaryService.getAllByParticipantId(accessService.currentUserId()));
-            }
-        }
         return Result.success(taskSummaryService.getAll());
     }
 
     private <T> Result<T> forbidden() {
         return Result.error(403, "forbidden");
+    }
+
+    private <T> Result<T> validateTaskAssociation(TaskSummary taskSummary) {
+        if (taskSummary.getTaskId() == null) {
+            return Result.error(400, "taskId is required");
+        }
+        if (taskSummary.getProjectId() == null) {
+            return Result.error(400, "projectId is required");
+        }
+
+        TaskInfo taskInfo = taskInfoService.getById(taskSummary.getTaskId());
+        if (taskInfo == null) {
+            return Result.error(400, "task not found");
+        }
+        if (!taskSummary.getProjectId().equals(taskInfo.getProjectId())) {
+            return Result.error(400, "task does not belong to project");
+        }
+        return null;
     }
 }

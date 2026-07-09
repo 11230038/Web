@@ -60,12 +60,45 @@ CREATE TABLE IF NOT EXISTS task_summary (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     creator_id BIGINT NOT NULL,
     project_id BIGINT NOT NULL,
-    task_id INT NOT NULL,
+    task_id BIGINT NOT NULL,
     summary_type INT NOT NULL,
     content VARCHAR(255) NOT NULL,
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_task_summary_creator_id FOREIGN KEY (creator_id) REFERENCES sys_user(id),
     CONSTRAINT fk_task_summary_project_id FOREIGN KEY (project_id) REFERENCES project_info(id),
-    CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_log(id)
+    CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_info(id)
 );
+
+SET @task_log_fk = (
+    SELECT CONSTRAINT_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'task_log'
+      AND COLUMN_NAME = 'task_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+SET @task_log_drop_sql = IF(@task_log_fk IS NOT NULL, CONCAT('ALTER TABLE task_log DROP FOREIGN KEY ', @task_log_fk), 'SELECT 1');
+PREPARE task_log_drop_stmt FROM @task_log_drop_sql;
+EXECUTE task_log_drop_stmt;
+DEALLOCATE PREPARE task_log_drop_stmt;
+ALTER TABLE task_log
+    ADD CONSTRAINT fk_task_log_task_id FOREIGN KEY (task_id) REFERENCES task_info(id);
+
+SET @task_summary_fk = (
+    SELECT CONSTRAINT_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'task_summary'
+      AND COLUMN_NAME = 'task_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+SET @task_summary_drop_sql = IF(@task_summary_fk IS NOT NULL, CONCAT('ALTER TABLE task_summary DROP FOREIGN KEY ', @task_summary_fk), 'SELECT 1');
+PREPARE task_summary_drop_stmt FROM @task_summary_drop_sql;
+EXECUTE task_summary_drop_stmt;
+DEALLOCATE PREPARE task_summary_drop_stmt;
+ALTER TABLE task_summary MODIFY COLUMN task_id BIGINT NOT NULL;
+ALTER TABLE task_summary
+    ADD CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_info(id);

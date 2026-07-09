@@ -58,6 +58,8 @@ class SysUserImplReflectionTest {
     void updateByIdShouldReturnTrueWhenUpdateSucceeds() throws Exception {
         Recorder handler = new Recorder();
         handler.updateResult = 1;
+        Object existingUser = newUser(2L, "bob");
+        handler.selectByIdResult = existingUser;
         Object service = newService(newMapper(handler));
         Object user = newUser(2L, "bob");
 
@@ -66,6 +68,24 @@ class SysUserImplReflectionTest {
         assertEquals("updateById", handler.lastMethodName);
         assertSame(user, handler.lastArgs[0]);
         assertTrue((Boolean) result);
+    }
+
+    @Test
+    void updateByIdShouldPreserveExistingRoleWhenRoleMissing() throws Exception {
+        Recorder handler = new Recorder();
+        handler.updateResult = 1;
+        Object existingUser = newUser(5L, "erin");
+        invoke(existingUser, "setRole", new Class<?>[]{Integer.class}, 1);
+        handler.selectByIdResult = existingUser;
+        Object service = newService(newMapper(handler));
+        Object user = newUser(5L, "erin");
+        Method setRole = user.getClass().getMethod("setRole", Integer.class);
+        setRole.invoke(user, new Object[]{null});
+
+        Object result = invoke(service, "updateById", new Class<?>[]{Class.forName("com.example.end.pojo.SysUser")}, user);
+
+        assertTrue((Boolean) result);
+        assertEquals(1, invoke(user, "getRole", new Class<?>[0]));
     }
 
     @Test
@@ -106,15 +126,18 @@ class SysUserImplReflectionTest {
     }
 
     @Test
-    void getAllShouldReturnAllUsers() throws Exception {
+    void getAllShouldExcludeAdminUsers() throws Exception {
         Recorder handler = new Recorder();
-        List<Object> users = List.of(newUser(1L, "alice"), newUser(2L, "bob"));
+        Object admin = newUser(1L, "admin");
+        invoke(admin, "setRole", new Class<?>[]{Integer.class}, 0);
+        Object member = newUser(2L, "bob");
+        List<Object> users = List.of(admin, member);
         handler.selectAllResult = users;
         Object service = newService(newMapper(handler));
 
         Object result = invoke(service, "getAll", new Class<?>[0]);
 
-        assertEquals(users, result);
+        assertEquals(List.of(member), result);
     }
 
     private Object newService(Object mapper) throws Exception {

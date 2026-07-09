@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import ActionModal from './components/workspace/ActionModal.vue'
 import LoginView from './components/workspace/LoginView.vue'
 import AppSidebar from './components/workspace/AppSidebar.vue'
 import ProjectWorkspaceModal from './components/workspace/ProjectWorkspaceModal.vue'
@@ -52,6 +53,7 @@ const pageProps = computed(() => {
     },
     tasks: {
       ...common,
+      modalOpen: app.modalState.task,
       priorityLabel: app.priorityLabel,
       projectNameById: app.projectNameById,
       projectStatusLabel: app.projectStatusLabel,
@@ -59,11 +61,14 @@ const pageProps = computed(() => {
     },
     logs: {
       ...common,
+      availableLogTasks: app.availableLogTasks.value,
+      modalOpen: app.modalState.log,
       taskTitleById: app.taskTitleById,
       userNameById: app.userNameById,
     },
     summaries: {
       ...common,
+      modalOpen: app.modalState.summary,
       projectNameById: app.projectNameById,
       summaryTypeLabel: app.summaryTypeLabel,
       taskTitleById: app.taskTitleById,
@@ -72,11 +77,15 @@ const pageProps = computed(() => {
     members: {
       ...common,
       isAdmin: Number(app.currentUser.value?.role) === 0,
+      modalOpen: app.modalState.member,
       roleLabel: app.roleLabel,
     },
     profile: {
       currentUser: app.currentUser.value,
       passwordForm: app.passwordForm,
+      passwordModalOpen: app.modalState.password,
+      profileForm: app.profileForm,
+      profileModalOpen: app.modalState.profile,
       roleLabel: app.roleLabel,
       saving: app.saving.value,
     },
@@ -123,23 +132,32 @@ const pageProps = computed(() => {
           :is="pageComponent"
           v-bind="pageProps"
           @change-password="app.changePassword"
+          @close-log-modal="app.closeLogModal"
+          @close-member-modal="app.closeMemberModal"
+          @close-password-modal="app.closePasswordModal"
+          @close-profile-modal="app.closeProfileModal"
+          @close-summary-modal="app.closeSummaryModal"
+          @close-task-modal="app.closeTaskModal"
           @create-project="app.openProjectWorkspace()"
           @edit-log="app.editLog"
           @edit-member="app.editMember"
           @edit-project="app.editProject"
           @edit-summary="app.editSummary"
           @edit-task="app.editTask"
-          @remove-log="app.removeLog"
-          @remove-member="app.removeMember"
-          @remove-project="app.removeProject"
-          @remove-summary="app.removeSummary"
-          @remove-task="app.removeTask"
-          @reset-log="app.resetEditor('log')"
-          @reset-member="app.resetEditor('member')"
-          @reset-summary="app.resetEditor('summary')"
-          @reset-task="app.resetEditor('task')"
+          @open-log-create="app.openLogCreate"
+          @open-member-create="app.openMemberCreate"
+          @open-password-modal="app.openPasswordModal"
+          @open-profile-modal="app.openProfileModal"
+          @open-summary-create="app.openSummaryCreate"
+          @open-task-create="app.openTaskCreate"
+          @remove-log="app.requestRemoveLog"
+          @remove-member="app.requestRemoveMember"
+          @remove-project="app.requestRemoveProject"
+          @remove-summary="app.requestRemoveSummary"
+          @remove-task="app.requestRemoveTask"
           @submit-log="app.submitLog"
           @submit-member="app.submitMember"
+          @submit-profile="app.submitProfile"
           @submit-summary="app.submitSummary"
           @submit-task="app.submitTask"
           @update-task-status="app.updateMyTaskStatus"
@@ -171,6 +189,25 @@ const pageProps = computed(() => {
         @toggle-breakdown="app.toggleBreakdown"
         @update:create-project-needs-breakdown="app.createProjectNeedsBreakdown.value = $event"
       />
+
+      <ActionModal
+        :open="app.deleteDialog.open"
+        :title="app.deleteDialog.title || '删除确认'"
+        width="460px"
+        @close="app.closeDeleteDialog"
+      >
+        <div class="delete-dialog">
+          <div class="delete-dialog__hero">
+            <span class="delete-dialog__badge">Danger Zone</span>
+            <strong>此操作删除后不可恢复</strong>
+            <p>{{ app.deleteDialog.message }}</p>
+          </div>
+          <div class="delete-dialog__footer">
+            <button class="ghost-btn" @click="app.closeDeleteDialog">取消</button>
+            <button class="primary-btn danger-fill" @click="app.confirmDelete">确认删除</button>
+          </div>
+        </div>
+      </ActionModal>
     </template>
   </div>
 </template>

@@ -101,12 +101,12 @@ class TaskInfoControllerReflectionTest {
     void getAllShouldReturnParticipantTasksForEmployee() throws Exception {
         Recorder handler = new Recorder();
         List<Object> tasks = List.of(newTask(4L, "employee-task"));
-        handler.getAllByParticipantIdResult = tasks;
+        handler.getAllByAssigneeIdResult = tasks;
         Object controller = newController(newService(handler), newAccessService(false, 2L, 2));
 
         Object result = invoke(controller, "getAll", new Class<?>[0]);
 
-        assertEquals("getAllByParticipantId", handler.lastMethodName);
+        assertEquals("getAllByAssigneeId", handler.lastMethodName);
         assertEquals(2L, handler.lastArgs[0]);
         assertEquals(200, invokeGetter(result, "getCode"));
         assertEquals(tasks, invokeGetter(result, "getData"));
@@ -186,6 +186,7 @@ class TaskInfoControllerReflectionTest {
         private List<Object> getAllResult = List.of();
         private List<Object> getAllByOwnerIdResult = List.of();
         private List<Object> getAllByParticipantIdResult = List.of();
+        private List<Object> getAllByAssigneeIdResult = List.of();
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
@@ -199,6 +200,7 @@ class TaskInfoControllerReflectionTest {
                 case "getAll" -> getAllResult;
                 case "getAllByOwnerId" -> getAllByOwnerIdResult;
                 case "getAllByParticipantId" -> getAllByParticipantIdResult;
+                case "getAllByAssigneeId" -> getAllByAssigneeIdResult;
                 default -> null;
             };
         }

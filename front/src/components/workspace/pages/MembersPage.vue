@@ -1,15 +1,41 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue'
+import ActionModal from '../ActionModal.vue'
+import PaginationControls from '../PaginationControls.vue'
+
+const props = defineProps({
   collections: { type: Object, required: true },
   editing: { type: Object, required: true },
   editor: { type: Object, required: true },
   isAdmin: { type: Boolean, default: false },
-  isManager: { type: Boolean, default: false },
+  modalOpen: { type: Boolean, default: false },
   roleLabel: { type: Function, required: true },
   saving: { type: Boolean, default: false },
 })
 
-defineEmits(['edit-member', 'remove-member', 'reset-member', 'submit-member'])
+defineEmits([
+  'close-member-modal',
+  'edit-member',
+  'open-member-create',
+  'remove-member',
+  'submit-member',
+])
+
+const page = ref(1)
+const pageSize = ref(5)
+const pageSizeOptions = [5, 10, 12]
+
+const totalPages = computed(() => Math.max(1, Math.ceil(props.collections.members.length / pageSize.value)))
+const pagedMembers = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return props.collections.members.slice(start, start + pageSize.value)
+})
+
+watch([() => props.collections.members.length, pageSize], () => {
+  if (page.value > totalPages.value) {
+    page.value = totalPages.value
+  }
+})
 </script>
 
 <template>
@@ -17,7 +43,12 @@ defineEmits(['edit-member', 'remove-member', 'reset-member', 'submit-member'])
     <article class="panel wide">
       <div class="panel-head">
         <h3>成员列表</h3>
-        <span>{{ collections.members.length }} 人</span>
+        <div class="actions">
+          <span>{{ collections.members.length }} 人</span>
+          <button v-if="isAdmin" class="primary-btn" @click="$emit('open-member-create')">
+            新增成员
+          </button>
+        </div>
       </div>
 
       <table class="data-table">
@@ -28,31 +59,40 @@ defineEmits(['edit-member', 'remove-member', 'reset-member', 'submit-member'])
             <th>角色</th>
             <th>邮箱</th>
             <th>电话</th>
-            <th v-if="isManager">操作</th>
+            <th v-if="isAdmin">操作</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in collections.members" :key="item.id">
+          <tr v-for="item in pagedMembers" :key="item.id">
             <td>{{ item.realName }}</td>
             <td>{{ item.username }}</td>
             <td>{{ roleLabel(item.role) }}</td>
             <td>{{ item.email || '-' }}</td>
             <td>{{ item.phone || '-' }}</td>
-            <td v-if="isManager" class="actions">
+            <td v-if="isAdmin" class="actions">
               <button class="text-btn" @click="$emit('edit-member', item)">编辑</button>
               <button class="text-btn danger" @click="$emit('remove-member', item.id)">删除</button>
             </td>
           </tr>
         </tbody>
       </table>
+
+      <PaginationControls
+        :page="page"
+        :page-size="pageSize"
+        :page-size-options="pageSizeOptions"
+        :total="collections.members.length"
+        :total-pages="totalPages"
+        @update:page="page = $event"
+        @update:page-size="pageSize = $event; page = 1"
+      />
     </article>
 
-    <article v-if="isAdmin || editing.memberId" class="panel">
-      <div class="panel-head">
-        <h3>{{ editing.memberId ? '编辑成员' : '新增成员' }}</h3>
-        <button class="text-btn" @click="$emit('reset-member')">清空</button>
-      </div>
-
+    <ActionModal
+      :open="(isAdmin || editing.memberId) && modalOpen"
+      :title="editing.memberId ? '编辑成员' : '新增成员'"
+      @close="$emit('close-member-modal')"
+    >
       <form class="form-grid" @submit.prevent="$emit('submit-member')">
         <label>
           用户名
@@ -64,7 +104,12 @@ defineEmits(['edit-member', 'remove-member', 'reset-member', 'submit-member'])
           <input v-model="editor.member.realName" required />
         </label>
 
-        <label>
+        <label v-if="editing.memberId">
+          角色
+          <input :value="roleLabel(editor.member.role)" readonly />
+        </label>
+
+        <label v-else>
           角色
           <select v-model.number="editor.member.role">
             <option :value="0">管理员</option>
@@ -73,12 +118,12 @@ defineEmits(['edit-member', 'remove-member', 'reset-member', 'submit-member'])
           </select>
         </label>
 
-        <label>
+        <label v-if="!editing.memberId">
           密码
           <input
             v-model="editor.member.password"
             type="password"
-            :placeholder="editing.memberId ? '留空表示不修改密码' : '请输入密码'"
+            placeholder="请输入密码"
           />
         </label>
 
@@ -96,6 +141,6 @@ defineEmits(['edit-member', 'remove-member', 'reset-member', 'submit-member'])
           {{ saving ? '提交中...' : editing.memberId ? '保存成员' : '新增成员' }}
         </button>
       </form>
-    </article>
+    </ActionModal>
   </section>
 </template>

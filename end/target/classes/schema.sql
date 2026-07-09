@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS task_info (
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_task_info_creator_id FOREIGN KEY (creator_id) REFERENCES sys_user(id),
     CONSTRAINT fk_task_info_assignee_id FOREIGN KEY (assignee_id) REFERENCES sys_user(id),
-    CONSTRAINT fk_task_info_project_id FOREIGN KEY (project_id) REFERENCES project_info(id),
-    CONSTRAINT fk_task_info_parent_id FOREIGN KEY (parent_id) REFERENCES task_info(id)
+    CONSTRAINT fk_task_info_project_id FOREIGN KEY (project_id) REFERENCES project_info(id) ON DELETE CASCADE,
+    CONSTRAINT fk_task_info_parent_id FOREIGN KEY (parent_id) REFERENCES task_info(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS task_summary (
@@ -66,9 +66,56 @@ CREATE TABLE IF NOT EXISTS task_summary (
     created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_task_summary_creator_id FOREIGN KEY (creator_id) REFERENCES sys_user(id),
-    CONSTRAINT fk_task_summary_project_id FOREIGN KEY (project_id) REFERENCES project_info(id),
-    CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_info(id)
+    CONSTRAINT fk_task_summary_project_id FOREIGN KEY (project_id) REFERENCES project_info(id) ON DELETE CASCADE,
+    CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_info(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS operate_log (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    operate_emp_id BIGINT NULL,
+    operate_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    class_name VARCHAR(255) NOT NULL,
+    method_name VARCHAR(255) NOT NULL,
+    method_params TEXT NULL,
+    return_value TEXT NULL,
+    cost_time BIGINT NOT NULL,
+    operate_emp_name VARCHAR(255) NULL,
+    INDEX idx_operate_log_time (operate_time),
+    INDEX idx_operate_log_emp_id (operate_emp_id),
+    CONSTRAINT fk_operate_log_emp_id FOREIGN KEY (operate_emp_id) REFERENCES sys_user(id) ON DELETE SET NULL
+);
+
+SET @task_info_project_fk = (
+    SELECT CONSTRAINT_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'task_info'
+      AND COLUMN_NAME = 'project_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+SET @task_info_project_drop_sql = IF(@task_info_project_fk IS NOT NULL, CONCAT('ALTER TABLE task_info DROP FOREIGN KEY ', @task_info_project_fk), 'SELECT 1');
+PREPARE task_info_project_drop_stmt FROM @task_info_project_drop_sql;
+EXECUTE task_info_project_drop_stmt;
+DEALLOCATE PREPARE task_info_project_drop_stmt;
+ALTER TABLE task_info
+    ADD CONSTRAINT fk_task_info_project_id FOREIGN KEY (project_id) REFERENCES project_info(id) ON DELETE CASCADE;
+
+SET @task_info_parent_fk = (
+    SELECT CONSTRAINT_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'task_info'
+      AND COLUMN_NAME = 'parent_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+SET @task_info_parent_drop_sql = IF(@task_info_parent_fk IS NOT NULL, CONCAT('ALTER TABLE task_info DROP FOREIGN KEY ', @task_info_parent_fk), 'SELECT 1');
+PREPARE task_info_parent_drop_stmt FROM @task_info_parent_drop_sql;
+EXECUTE task_info_parent_drop_stmt;
+DEALLOCATE PREPARE task_info_parent_drop_stmt;
+ALTER TABLE task_info
+    ADD CONSTRAINT fk_task_info_parent_id FOREIGN KEY (parent_id) REFERENCES task_info(id) ON DELETE CASCADE;
 
 SET @task_log_fk = (
     SELECT CONSTRAINT_NAME
@@ -84,7 +131,23 @@ PREPARE task_log_drop_stmt FROM @task_log_drop_sql;
 EXECUTE task_log_drop_stmt;
 DEALLOCATE PREPARE task_log_drop_stmt;
 ALTER TABLE task_log
-    ADD CONSTRAINT fk_task_log_task_id FOREIGN KEY (task_id) REFERENCES task_info(id);
+    ADD CONSTRAINT fk_task_log_task_id FOREIGN KEY (task_id) REFERENCES task_info(id) ON DELETE CASCADE;
+
+SET @task_summary_project_fk = (
+    SELECT CONSTRAINT_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'task_summary'
+      AND COLUMN_NAME = 'project_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+SET @task_summary_project_drop_sql = IF(@task_summary_project_fk IS NOT NULL, CONCAT('ALTER TABLE task_summary DROP FOREIGN KEY ', @task_summary_project_fk), 'SELECT 1');
+PREPARE task_summary_project_drop_stmt FROM @task_summary_project_drop_sql;
+EXECUTE task_summary_project_drop_stmt;
+DEALLOCATE PREPARE task_summary_project_drop_stmt;
+ALTER TABLE task_summary
+    ADD CONSTRAINT fk_task_summary_project_id FOREIGN KEY (project_id) REFERENCES project_info(id) ON DELETE CASCADE;
 
 SET @task_summary_fk = (
     SELECT CONSTRAINT_NAME
@@ -101,4 +164,20 @@ EXECUTE task_summary_drop_stmt;
 DEALLOCATE PREPARE task_summary_drop_stmt;
 ALTER TABLE task_summary MODIFY COLUMN task_id BIGINT NOT NULL;
 ALTER TABLE task_summary
-    ADD CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_info(id);
+    ADD CONSTRAINT fk_task_summary_task_id FOREIGN KEY (task_id) REFERENCES task_info(id) ON DELETE CASCADE;
+
+SET @operate_log_emp_fk = (
+    SELECT CONSTRAINT_NAME
+    FROM information_schema.KEY_COLUMN_USAGE
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'operate_log'
+      AND COLUMN_NAME = 'operate_emp_id'
+      AND REFERENCED_TABLE_NAME IS NOT NULL
+    LIMIT 1
+);
+SET @operate_log_emp_drop_sql = IF(@operate_log_emp_fk IS NOT NULL, CONCAT('ALTER TABLE operate_log DROP FOREIGN KEY ', @operate_log_emp_fk), 'SELECT 1');
+PREPARE operate_log_emp_drop_stmt FROM @operate_log_emp_drop_sql;
+EXECUTE operate_log_emp_drop_stmt;
+DEALLOCATE PREPARE operate_log_emp_drop_stmt;
+ALTER TABLE operate_log
+    ADD CONSTRAINT fk_operate_log_emp_id FOREIGN KEY (operate_emp_id) REFERENCES sys_user(id) ON DELETE SET NULL;

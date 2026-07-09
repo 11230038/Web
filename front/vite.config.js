@@ -18,6 +18,7 @@ export default defineConfig({
       '/taskLogs': 'http://127.0.0.1:8080',
       '/taskSummaries': 'http://127.0.0.1:8080',
       '/sysUsers': 'http://127.0.0.1:8080',
+      '/operateLogs': 'http://127.0.0.1:8080',
       '/api': 'http://127.0.0.1:8080',
     },
   },

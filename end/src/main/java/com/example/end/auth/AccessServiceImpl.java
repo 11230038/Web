@@ -29,6 +29,12 @@ public class AccessServiceImpl implements AccessService {
     }
 
     @Override
+    public boolean isAdmin() {
+        SysUser user = currentUser();
+        return user != null && user.getRole() != null && user.getRole() == UserRoleConfig.ROLE_ADMIN;
+    }
+
+    @Override
     public boolean isManager() {
         SysUser user = currentUser();
         if (user == null || user.getRole() == null) {

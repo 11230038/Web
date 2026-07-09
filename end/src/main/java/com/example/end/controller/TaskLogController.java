@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.audit.Log;
 import com.example.end.auth.AccessService;
 import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.Result;
@@ -28,6 +29,7 @@ public class TaskLogController {
         this.accessService = accessService;
     }
 
+    @Log("新增进度记录")
     @PostMapping
     public Result<TaskLog> add(@RequestBody TaskLog taskLog) {
         if (taskLog.getOperatorId() == null) {
@@ -36,6 +38,7 @@ public class TaskLogController {
         return Result.success(taskLogService.add(taskLog));
     }
 
+    @Log("删除进度记录")
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Integer id) {
         TaskLog existingLog = taskLogService.getById(id);
@@ -52,6 +55,7 @@ public class TaskLogController {
         return Result.success(true);
     }
 
+    @Log("更新进度记录")
     @PutMapping
     public Result<Boolean> updateById(@RequestBody TaskLog taskLog) {
         TaskLog existingLog = taskLogService.getById(taskLog.getId());

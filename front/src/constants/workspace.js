@@ -9,5 +9,6 @@ export const MENUS = [
   { key: 'logs', label: '进度跟踪', managerOnly: false },
   { key: 'summaries', label: '总结中心', managerOnly: false },
   { key: 'members', label: '成员列表', managerOnly: false },
+  { key: 'operateLogs', label: '日志管理', managerOnly: false, adminOnly: true },
   { key: 'profile', label: '个人信息', managerOnly: false },
 ]

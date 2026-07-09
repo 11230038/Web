@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.audit.Log;
 import com.example.end.auth.AccessService;
 import com.example.end.auth.PasswordChangeRequest;
 import com.example.end.auth.PasswordUtil;
@@ -30,6 +31,7 @@ public class SysUserController {
         this.accessService = accessService;
     }
 
+    @Log("新增成员")
     @PostMapping
     public Result<SysUser> add(@RequestBody SysUser sysUser) {
         SysUser currentUser = accessService.currentUser();
@@ -41,6 +43,7 @@ public class SysUserController {
         return Result.success(sysUserService.add(sysUser));
     }
 
+    @Log("删除成员")
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
         if (!accessService.isManager()) {
@@ -53,6 +56,7 @@ public class SysUserController {
         return Result.success(true);
     }
 
+    @Log("更新成员")
     @PutMapping
     public Result<Boolean> updateById(@RequestBody SysUser sysUser) {
         SysUser currentUser = accessService.currentUser();
@@ -91,6 +95,7 @@ public class SysUserController {
         return Result.success(sysUserService.getAll());
     }
 
+    @Log("修改密码")
     @PostMapping("/change-password")
     public Result<Boolean> changePassword(@RequestBody PasswordChangeRequest request) {
         SysUser currentUser = accessService.currentUser();

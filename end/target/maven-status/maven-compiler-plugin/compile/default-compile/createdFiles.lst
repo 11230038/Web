@@ -1,3 +1,4 @@
+com\example\end\service\OperateLogService.class
 com\example\end\pojo\TaskSummary.class
 com\example\end\config\TaskSummaryConfig.class
 com\example\end\pojo\Result.class
@@ -12,8 +13,11 @@ com\example\end\auth\PasswordChangeRequest.class
 com\example\end\config\ProjectInfoConfig.class
 com\example\end\agent\TaskSuggestionRequest.class
 com\example\end\mapper\TaskLogMapper.class
+com\example\end\pojo\OperateLogPage.class
 com\example\end\agent\TaskSuggestionAgentService.class
+com\example\end\service\impl\OperateLogImpl.class
 com\example\end\service\impl\TaskLogImpl.class
+com\example\end\pojo\OperateLog.class
 com\example\end\service\impl\SysUserImpl.class
 com\example\end\service\SysUserService.class
 com\example\end\service\TaskLogService.class
@@ -21,6 +25,7 @@ com\example\end\agent\TaskSuggestionResponse.class
 com\example\end\controller\SysUserController.class
 com\example\end\agent\PromptTemplateLoader.class
 com\example\end\util\CurrentHolder.class
+com\example\end\controller\OperateLogController.class
 com\example\end\controller\ProjectInfoController.class
 com\example\end\service\impl\ProjectInfoImpl.class
 com\example\end\auth\PasswordUtil.class
@@ -30,12 +35,15 @@ com\example\end\auth\AccessServiceImpl.class
 com\example\end\agent\AiChatClient.class
 com\example\end\agent\AiProperties.class
 com\example\end\auth\AuthController.class
+com\example\end\audit\OperationAuditAspect.class
 com\example\end\agent\TaskSuggestionAgentController.class
 com\example\end\mapper\TaskSummaryMapper.class
 com\example\end\agent\TaskBreakdownJsonParser.class
+com\example\end\audit\OperationAuditRecorder$1.class
 com\example\end\pojo\ProjectInfo.class
 com\example\end\pojo\TaskInfo.class
 com\example\end\Application.class
+com\example\end\mapper\OperateLogMapper.class
 com\example\end\agent\TaskBreakdownJsonParser$1.class
 com\example\end\auth\JwtProperties.class
 com\example\end\auth\JwtConfig.class
@@ -45,6 +53,7 @@ com\example\end\service\ProjectInfoService.class
 com\example\end\agent\AiMemberOption.class
 com\example\end\controller\TaskInfoController.class
 com\example\end\config\UserRoleConfig.class
+com\example\end\audit\Log.class
 com\example\end\auth\AuthService.class
 com\example\end\auth\JwtAuthInterceptor.class
 com\example\end\mapper\TaskInfoMapper.class

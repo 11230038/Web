@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.audit.Log;
 import com.example.end.auth.AccessService;
 import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.Result;
@@ -28,6 +29,7 @@ public class TaskInfoController {
         this.accessService = accessService;
     }
 
+    @Log("新增任务")
     @PostMapping
     public Result<TaskInfo> add(@RequestBody TaskInfo taskInfo) {
         if (!accessService.isManager()) {
@@ -39,6 +41,7 @@ public class TaskInfoController {
         return Result.success(taskInfoService.add(taskInfo));
     }
 
+    @Log("删除任务")
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
         if (!accessService.isManager()) {
@@ -51,6 +54,7 @@ public class TaskInfoController {
         return Result.success(true);
     }
 
+    @Log("更新任务")
     @PutMapping
     public Result<Boolean> updateById(@RequestBody TaskInfo taskInfo) {
         TaskInfo existingTask = taskInfoService.getById(taskInfo.getId());

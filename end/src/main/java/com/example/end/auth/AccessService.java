@@ -7,6 +7,8 @@ public interface AccessService {
 
     SysUser currentUser();
 
+    boolean isAdmin();
+
     boolean isManager();
 
     boolean isCurrentUser(Long userId);

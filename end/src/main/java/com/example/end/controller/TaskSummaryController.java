@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.audit.Log;
 import com.example.end.auth.AccessService;
 import com.example.end.pojo.Result;
 import com.example.end.pojo.TaskInfo;
@@ -35,6 +36,7 @@ public class TaskSummaryController {
         this.taskInfoService = taskInfoService;
     }
 
+    @Log("新增总结")
     @PostMapping
     public Result<TaskSummary> add(@RequestBody TaskSummary taskSummary) {
         Result<TaskSummary> validationResult = validateTaskAssociation(taskSummary);
@@ -47,6 +49,7 @@ public class TaskSummaryController {
         return Result.success(taskSummaryService.add(taskSummary));
     }
 
+    @Log("删除总结")
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
         if (!accessService.isManager()) {
@@ -59,6 +62,7 @@ public class TaskSummaryController {
         return Result.success(true);
     }
 
+    @Log("更新总结")
     @PutMapping
     public Result<Boolean> updateById(@RequestBody TaskSummary taskSummary) {
         if (!accessService.isManager()) {

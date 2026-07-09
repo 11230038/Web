@@ -1,5 +1,6 @@
 package com.example.end.controller;
 
+import com.example.end.audit.Log;
 import com.example.end.auth.AccessService;
 import com.example.end.config.UserRoleConfig;
 import com.example.end.pojo.ProjectInfo;
@@ -36,6 +37,7 @@ public class ProjectInfoController {
         this.sysUserService = sysUserService;
     }
 
+    @Log("新增项目")
     @PostMapping
     @Transactional
     public Result<ProjectInfo> add(@RequestBody ProjectInfo projectInfo) {
@@ -58,6 +60,7 @@ public class ProjectInfoController {
         return Result.success(createdProject);
     }
 
+    @Log("删除项目")
     @DeleteMapping("/{id}")
     public Result<Boolean> deleteById(@PathVariable Long id) {
         if (!accessService.isManager()) {
@@ -70,6 +73,7 @@ public class ProjectInfoController {
         return Result.success(true);
     }
 
+    @Log("更新项目")
     @PutMapping
     public Result<Boolean> updateById(@RequestBody ProjectInfo projectInfo) {
         if (!accessService.isManager()) {

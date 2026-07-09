@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: AuthControllerReflectionTest
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.333 s -- in AuthControllerReflectionTest
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.266 s -- in AuthControllerReflectionTest

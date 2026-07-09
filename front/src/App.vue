@@ -10,6 +10,7 @@ import OverviewPage from './components/workspace/pages/OverviewPage.vue'
 import ProfilePage from './components/workspace/pages/ProfilePage.vue'
 import ProjectsPage from './components/workspace/pages/ProjectsPage.vue'
 import SummariesPage from './components/workspace/pages/SummariesPage.vue'
+import SystemLogsPage from './components/workspace/pages/SystemLogsPage.vue'
 import TasksPage from './components/workspace/pages/TasksPage.vue'
 import { useWorkspaceApp } from './composables/useWorkspaceApp'
 
@@ -22,6 +23,7 @@ const pageComponent = computed(() => ({
   logs: LogsPage,
   summaries: SummariesPage,
   members: MembersPage,
+  operateLogs: SystemLogsPage,
   profile: ProfilePage,
 }[app.activeMenu.value] || OverviewPage))
 
@@ -79,6 +81,10 @@ const pageProps = computed(() => {
       isAdmin: Number(app.currentUser.value?.role) === 0,
       modalOpen: app.modalState.member,
       roleLabel: app.roleLabel,
+    },
+    operateLogs: {
+      loading: app.loading.value,
+      systemLogState: app.operateLogState,
     },
     profile: {
       currentUser: app.currentUser.value,
@@ -150,6 +156,9 @@ const pageProps = computed(() => {
           @open-profile-modal="app.openProfileModal"
           @open-summary-create="app.openSummaryCreate"
           @open-task-create="app.openTaskCreate"
+          @reload="app.refreshOperateLogs"
+          @update:page="app.updateOperateLogPage"
+          @update:page-size="app.updateOperateLogPageSize"
           @remove-log="app.requestRemoveLog"
           @remove-member="app.requestRemoveMember"
           @remove-project="app.requestRemoveProject"

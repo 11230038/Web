@@ -106,8 +106,15 @@ export function useWorkspaceApp() {
   )
   const canViewProjectForm = computed(() => Boolean(isManager.value || canCreateProject.value))
   const canUseAiWorkspace = computed(() => Boolean(isManager.value))
+  const operateLogState = reactive({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 1,
+    items: [],
+  })
   const visibleMenus = computed(() =>
-    MENUS.filter((item) => !item.managerOnly || isManager.value),
+    MENUS.filter((item) => (!item.managerOnly || isManager.value) && (!item.adminOnly || isAdmin.value)),
   )
   const activeMenuLabel = computed(() =>
     MENUS.find((item) => item.key === activeMenu.value)?.label || '工作台',
@@ -314,6 +321,24 @@ export function useWorkspaceApp() {
     })
   }
 
+  async function loadOperateLogs(page = operateLogState.page, pageSize = operateLogState.pageSize) {
+    if (!isAuthed.value || !isAdmin.value) {
+      operateLogState.page = 1
+      operateLogState.pageSize = pageSize
+      operateLogState.total = 0
+      operateLogState.totalPages = 1
+      operateLogState.items = []
+      return
+    }
+
+    const data = await api(`/operateLogs?page=${page}&pageSize=${pageSize}`)
+    operateLogState.page = data.page || 1
+    operateLogState.pageSize = data.pageSize || pageSize
+    operateLogState.total = data.total || 0
+    operateLogState.totalPages = data.totalPages || 1
+    operateLogState.items = data.items || []
+  }
+
   async function loadDashboard() {
     if (!isAuthed.value) return
     loading.value = true
@@ -335,6 +360,7 @@ export function useWorkspaceApp() {
       await loadCurrentUserProfile()
       syncCurrentUserRole()
       syncProfileForm()
+      await loadOperateLogs()
     } catch (error) {
       setMessage('error', error.message)
     } finally {
@@ -1006,6 +1032,28 @@ export function useWorkspaceApp() {
     }
   }
 
+  async function refreshOperateLogs() {
+    loading.value = true
+    try {
+      await loadOperateLogs()
+    } catch (error) {
+      setMessage('error', error.message)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateOperateLogPage(page) {
+    operateLogState.page = page
+    await refreshOperateLogs()
+  }
+
+  async function updateOperateLogPageSize(pageSize) {
+    operateLogState.pageSize = pageSize
+    operateLogState.page = 1
+    await refreshOperateLogs()
+  }
+
   if (isAuthed.value) {
     loadDashboard()
   }
@@ -1053,6 +1101,7 @@ export function useWorkspaceApp() {
     logout,
     modalState,
     myTasks,
+    operateLogState,
     openLogCreate,
     openMemberCreate,
     openPasswordModal,
@@ -1095,6 +1144,9 @@ export function useWorkspaceApp() {
     taskTitleById,
     toggleBreakdown,
     updateMyTaskStatus,
+    updateOperateLogPage,
+    updateOperateLogPageSize,
+    refreshOperateLogs,
     userNameById,
     visibleMenus,
   }

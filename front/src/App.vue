@@ -3,7 +3,9 @@ import { computed } from 'vue'
 import ActionModal from './components/workspace/ActionModal.vue'
 import LoginView from './components/workspace/LoginView.vue'
 import AppSidebar from './components/workspace/AppSidebar.vue'
+import ProjectBreakdownModal from './components/workspace/ProjectBreakdownModal.vue'
 import ProjectWorkspaceModal from './components/workspace/ProjectWorkspaceModal.vue'
+import WorkspaceAlert from './components/workspace/WorkspaceAlert.vue'
 import LogsPage from './components/workspace/pages/LogsPage.vue'
 import MembersPage from './components/workspace/pages/MembersPage.vue'
 import OverviewPage from './components/workspace/pages/OverviewPage.vue'
@@ -131,8 +133,15 @@ const pageProps = computed(() => {
           </div>
         </div>
 
-        <p v-if="app.successMessage.value" class="banner success">{{ app.successMessage.value }}</p>
-        <p v-if="app.errorMessage.value" class="banner error">{{ app.errorMessage.value }}</p>
+        <WorkspaceAlert
+          :key="app.message.value?.key || 'workspace-alert'"
+          :message="app.message.value?.text || ''"
+          :open="Boolean(app.message.value?.text)"
+          :title="app.message.value?.title || ''"
+          :type="app.message.value?.type || 'success'"
+          dismissible
+          @close="app.clearMessage"
+        />
 
         <component
           :is="pageComponent"
@@ -174,29 +183,34 @@ const pageProps = computed(() => {
       </main>
 
       <ProjectWorkspaceModal
-        :ai-form="app.aiForm"
-        :breakdown-result="app.breakdownResult.value"
         :can-create-project="app.canCreateProject.value"
-        :can-use-ai-workspace="app.canUseAiWorkspace.value"
         :can-view-project-form="app.canViewProjectForm.value"
-        :collections="app.collections"
         :create-project-needs-breakdown="app.createProjectNeedsBreakdown.value"
         :editing="app.editing"
         :editor="app.editor"
         :open="app.projectWorkspaceOpen.value"
-        :project-status-label="app.projectStatusLabel"
         :saving="app.saving.value"
-        :selected-breakdown-indexes="app.selectedBreakdownIndexes.value"
-        :show-breakdown-workspace="app.showBreakdownWorkspace.value"
         :user-name-by-id="app.userNameById"
         @close="app.closeProjectWorkspace"
+        @reset-project="app.resetEditor('project')"
+        @submit-project="app.submitProject"
+        @update:create-project-needs-breakdown="app.createProjectNeedsBreakdown.value = $event"
+      />
+
+      <ProjectBreakdownModal
+        :ai-form="app.aiForm"
+        :breakdown-result="app.breakdownResult.value"
+        :can-use-ai-workspace="app.canUseAiWorkspace.value"
+        :collections="app.collections"
+        :open="app.breakdownModalOpen.value"
+        :saving="app.saving.value"
+        :selected-breakdown-indexes="app.selectedBreakdownIndexes.value"
+        :user-name-by-id="app.userNameById"
+        @close="app.closeBreakdownModal"
         @generate-breakdown="app.generateProjectBreakdown"
         @import-breakdown="app.importSelectedBreakdownTasks"
         @reset-ai="app.resetAiWorkspace"
-        @reset-project="app.resetEditor('project')"
-        @submit-project="app.submitProject"
         @toggle-breakdown="app.toggleBreakdown"
-        @update:create-project-needs-breakdown="app.createProjectNeedsBreakdown.value = $event"
       />
 
       <ActionModal

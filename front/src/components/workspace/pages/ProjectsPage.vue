@@ -36,7 +36,6 @@ watch([() => props.collections.projects.length, pageSize], () => {
       <div class="panel-head">
         <h3>项目列表</h3>
         <div class="actions">
-          <span>{{ collections.projects.length }} 项</span>
           <button v-if="canCreateProject" class="primary-btn" @click="$emit('create-project')">
             新建项目
           </button>

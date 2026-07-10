@@ -23,7 +23,6 @@ defineProps({
     <article class="panel wide">
       <div class="panel-head">
         <h3>我的待办</h3>
-        <span>{{ myTasks.length }} 项</span>
       </div>
 
       <div v-if="myTasks.length" class="list-stack">

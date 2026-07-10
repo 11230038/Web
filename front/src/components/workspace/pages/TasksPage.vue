@@ -81,7 +81,6 @@ watch(
       <div class="panel-head">
         <h3>任务列表</h3>
         <div class="actions">
-          <span>{{ collections.tasks.length }} 项</span>
           <button v-if="canCreateTask" class="primary-btn" @click="$emit('open-task-create')">
             新增任务
           </button>

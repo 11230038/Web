@@ -75,7 +75,6 @@ watch(
       <div class="panel-head">
         <h3>总结列表</h3>
         <div class="actions">
-          <span>{{ collections.summaries.length }} 条</span>
           <button v-if="Number(currentUser?.role) !== 0" class="primary-btn" @click="$emit('open-summary-create')">新增总结</button>
         </div>
       </div>

@@ -41,7 +41,6 @@ watch([() => props.collections.logs.length, pageSize], () => {
       <div class="panel-head">
         <h3>进度记录</h3>
         <div class="actions">
-          <span>{{ collections.logs.length }} 条</span>
           <button v-if="Number(currentUser?.role) !== 0" class="primary-btn" @click="$emit('open-log-create')">新增记录</button>
         </div>
       </div>

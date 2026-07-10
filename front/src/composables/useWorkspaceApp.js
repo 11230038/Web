@@ -20,8 +20,15 @@ export function useWorkspaceApp() {
   const activeMenu = ref(currentUser.value ? 'overview' : 'login')
   const loading = ref(false)
   const saving = ref(false)
-  const errorMessage = ref('')
-  const successMessage = ref('')
+  const message = ref(null)
+  const successMessage = computed(() =>
+    message.value?.type === 'success' ? message.value.text : '',
+  )
+  const errorMessage = computed(() =>
+    message.value?.type === 'error' ? message.value.text : '',
+  )
+  const MESSAGE_DURATION = 5000
+  let messageTimer = null
   const taskTitles = reactive({})
 
   const loginForm = reactive({
@@ -39,8 +46,8 @@ export function useWorkspaceApp() {
   const breakdownResult = ref(null)
   const selectedBreakdownIndexes = ref([])
   const projectWorkspaceOpen = ref(false)
+  const breakdownModalOpen = ref(false)
   const createProjectNeedsBreakdown = ref(true)
-  const showBreakdownWorkspace = ref(false)
 
   const collections = reactive({
     projects: [],
@@ -164,9 +171,31 @@ export function useWorkspaceApp() {
     return baseTasks
   })
 
+  function clearMessage() {
+    if (messageTimer) {
+      clearTimeout(messageTimer)
+      messageTimer = null
+    }
+    message.value = null
+  }
+
   function setMessage(type, text) {
-    errorMessage.value = type === 'error' ? text : ''
-    successMessage.value = type === 'success' ? text : ''
+    if (!type || !text) {
+      clearMessage()
+      return
+    }
+
+    clearMessage()
+    message.value = {
+      type,
+      text,
+      title: type === 'error' ? '操作失败' : '操作成功',
+      key: `${type}-${Date.now()}`,
+    }
+
+    messageTimer = setTimeout(() => {
+      clearMessage()
+    }, MESSAGE_DURATION)
   }
 
   async function api(path, options = {}) {
@@ -209,6 +238,13 @@ export function useWorkspaceApp() {
     aiForm.importProjectId = ''
     breakdownResult.value = null
     selectedBreakdownIndexes.value = []
+  }
+
+  function prepareAiFormFromProject(project) {
+    if (!project) return
+    aiForm.importProjectId = project.id || ''
+    aiForm.projectName = project.name || aiForm.projectName
+    aiForm.description = project.description || aiForm.description
   }
 
   function resetEditor(type) {
@@ -382,7 +418,7 @@ export function useWorkspaceApp() {
       localStorage.setItem('currentUser', JSON.stringify(data))
       activeMenu.value = 'overview'
       await loadDashboard()
-      setMessage('success', `欢迎回来，${data.realName || data.username}`)
+      setMessage('success', `欢迎回来，${data.realName || data.username}。工作台已为你准备就绪。`)
     } catch (error) {
       setMessage('error', error.message)
     } finally {
@@ -451,18 +487,15 @@ export function useWorkspaceApp() {
   }
 
   function openProjectWorkspace(mode = 'create', item = null) {
+    breakdownModalOpen.value = false
     if (mode === 'edit' && item) {
       editor.project = { ...item }
       editing.projectId = item.id
-      aiForm.projectName = item.name || ''
-      aiForm.description = item.description || ''
-      aiForm.importProjectId = item.id
-      showBreakdownWorkspace.value = false
+      prepareAiFormFromProject(item)
     } else {
       resetEditor('project')
       resetAiWorkspace()
       createProjectNeedsBreakdown.value = true
-      showBreakdownWorkspace.value = false
     }
     projectWorkspaceOpen.value = true
   }
@@ -470,9 +503,19 @@ export function useWorkspaceApp() {
   function closeProjectWorkspace() {
     projectWorkspaceOpen.value = false
     resetEditor('project')
-    resetAiWorkspace()
     createProjectNeedsBreakdown.value = true
-    showBreakdownWorkspace.value = false
+  }
+
+  function openBreakdownModal(project = null) {
+    if (project) {
+      prepareAiFormFromProject(project)
+    }
+    breakdownModalOpen.value = true
+  }
+
+  function closeBreakdownModal() {
+    breakdownModalOpen.value = false
+    resetAiWorkspace()
   }
 
   function editProject(item) {
@@ -650,15 +693,15 @@ export function useWorkspaceApp() {
         }
         const payload = { ...editor.project, ownerId: editor.project.ownerId || null }
         await api('/projectInfos', { method: 'PUT', body: JSON.stringify(payload) })
-        aiForm.importProjectId = editor.project.id
-        aiForm.projectName = editor.project.name || aiForm.projectName
-        aiForm.description = editor.project.description || aiForm.description
-        showBreakdownWorkspace.value = false
-        setMessage('success', '项目已更新')
+        prepareAiFormFromProject(editor.project)
+        await loadDashboard()
+        closeProjectWorkspace()
+        setMessage('success', '项目内容已更新。')
       } else {
         if (!canCreateProject.value) {
           throw new Error('只有成员和项目负责人可以新增项目')
         }
+        const shouldOpenBreakdown = createProjectNeedsBreakdown.value
         const payload = { ...editor.project, ownerId: currentUser.value?.userId || null }
         const createdProject = await api('/projectInfos', {
           method: 'POST',
@@ -666,15 +709,20 @@ export function useWorkspaceApp() {
         })
         editor.project = { ...createdProject }
         editing.projectId = createdProject.id
-        aiForm.importProjectId = createdProject.id
-        aiForm.projectName = createdProject.name || aiForm.projectName
-        aiForm.description = createdProject.description || aiForm.description
-        showBreakdownWorkspace.value = createProjectNeedsBreakdown.value
-        setMessage('success', '项目已创建')
-      }
-      await loadDashboard()
-      if (!showBreakdownWorkspace.value) {
+        prepareAiFormFromProject(createdProject)
+        await loadDashboard()
         closeProjectWorkspace()
+
+        if (shouldOpenBreakdown) {
+          if (canUseAiWorkspace.value) {
+            openBreakdownModal(createdProject)
+            setMessage('success', '项目创建成功，已为你打开 AI 拆解工作台。')
+          } else {
+            setMessage('success', '项目创建成功，但当前账号暂未开通 AI 拆解权限。')
+          }
+        } else {
+          setMessage('success', '项目创建成功。')
+        }
       }
     } catch (error) {
       setMessage('error', error.message)
@@ -995,11 +1043,11 @@ export function useWorkspaceApp() {
           }),
         ),
       )
-      setMessage('success', `已导入 ${selectedItems.length} 条任务`)
       activeMenu.value = 'tasks'
-      closeProjectWorkspace()
+      closeBreakdownModal()
       editor.task.projectId = importProjectId
       await loadDashboard()
+      setMessage('success', `已导入 ${selectedItems.length} 条任务`)
     } catch (error) {
       setMessage('error', error.message)
     } finally {
@@ -1067,6 +1115,8 @@ export function useWorkspaceApp() {
     canCreateProject,
     canUseAiWorkspace,
     canViewProjectForm,
+    clearMessage,
+    closeBreakdownModal,
     closeDeleteDialog,
     closeLogModal,
     closeMemberModal,
@@ -1099,9 +1149,11 @@ export function useWorkspaceApp() {
     login,
     loginForm,
     logout,
+    message,
     modalState,
     myTasks,
     operateLogState,
+    openBreakdownModal,
     openLogCreate,
     openMemberCreate,
     openPasswordModal,
@@ -1115,6 +1167,7 @@ export function useWorkspaceApp() {
     priorityLabel,
     projectNameById,
     projectStatusLabel,
+    breakdownModalOpen,
     projectWorkspaceOpen,
     requestRemoveLog,
     requestRemoveMember,
@@ -1132,7 +1185,6 @@ export function useWorkspaceApp() {
     saving,
     selectedBreakdownIndexes,
     setMessage,
-    showBreakdownWorkspace,
     submitLog,
     submitMember,
     submitProfile,

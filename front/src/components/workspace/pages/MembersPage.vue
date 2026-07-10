@@ -44,7 +44,6 @@ watch([() => props.collections.members.length, pageSize], () => {
       <div class="panel-head">
         <h3>成员列表</h3>
         <div class="actions">
-          <span>{{ collections.members.length }} 人</span>
           <button v-if="isAdmin" class="primary-btn" @click="$emit('open-member-create')">
             新增成员
           </button>

@@ -1,4 +1,6 @@
 <script setup>
+import WorkspaceAlert from './WorkspaceAlert.vue'
+
 defineProps({
   errorMessage: { type: String, default: '' },
   loading: { type: Boolean, default: false },
@@ -29,7 +31,12 @@ defineEmits(['submit'])
         </button>
       </form>
 
-      <p v-if="errorMessage" class="banner error">{{ errorMessage }}</p>
+      <WorkspaceAlert
+        v-if="errorMessage"
+        :message="errorMessage"
+        title="登录失败"
+        type="error"
+      />
     </div>
   </section>
 </template>

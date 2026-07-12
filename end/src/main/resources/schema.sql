@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS sys_user (
+﻿CREATE TABLE IF NOT EXISTS sys_user (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -181,3 +181,4 @@ EXECUTE operate_log_emp_drop_stmt;
 DEALLOCATE PREPARE operate_log_emp_drop_stmt;
 ALTER TABLE operate_log
     ADD CONSTRAINT fk_operate_log_emp_id FOREIGN KEY (operate_emp_id) REFERENCES sys_user(id) ON DELETE SET NULL;
+

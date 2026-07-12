@@ -1,55 +1,65 @@
-INSERT IGNORE INTO sys_user (id, username, password, real_name, role, email, phone)
+﻿INSERT IGNORE INTO `sys_user` (`id`, `username`, `password`, `real_name`, `role`, `email`, `phone`, `created_time`, `updated_time`)
 VALUES
-    (1, 'admin', MD5('123456'), 'System Admin', 0, 'admin@demo.local', '13800138000'),
-    (2, 'zhangchen', MD5('123456'), 'Zhang Chen', 1, 'zhangchen@demo.local', '13800138001'),
-    (3, 'lixue', MD5('123456'), 'Li Xue', 1, 'lixue@demo.local', '13800138002'),
-    (4, 'wanghao', MD5('123456'), 'Wang Hao', 1, 'wanghao@demo.local', '13800138003'),
-    (5, 'zhaomin', MD5('123456'), 'Zhao Min', 2, 'zhaomin@demo.local', '13800138004'),
-    (6, 'qiankun', MD5('123456'), 'Qian Kun', 2, 'qiankun@demo.local', '13800138005'),
-    (7, 'sunyue', MD5('123456'), 'Sun Yue', 2, 'sunyue@demo.local', '13800138006'),
-    (8, 'zhouning', MD5('123456'), 'Zhou Ning', 2, 'zhouning@demo.local', '13800138007'),
-    (9, 'wudi', MD5('123456'), 'Wu Di', 2, 'wudi@demo.local', '13800138008'),
-    (10, 'zhengjia', MD5('123456'), 'Zheng Jia', 2, 'zhengjia@demo.local', '13800138009');
+    (1,'系统管理员','e10adc3949ba59abbe56e057f20f883e','系统管理员',0,'guanliyuan@demo.local','13800138000','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (2,'张晨','e10adc3949ba59abbe56e057f20f883e','张晨',1,'zhangchen@demo.local','13800138001','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (3,'李雪','e10adc3949ba59abbe56e057f20f883e','李雪',1,'lixue@demo.local','13800138002','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (4,'王浩','e10adc3949ba59abbe56e057f20f883e','王浩',1,'wanghao@demo.local','13800138003','2026-07-09 09:14:34','2026-07-10 16:44:51'),
+    (5,'赵敏','e10adc3949ba59abbe56e057f20f883e','赵敏',2,'zhaomin@demo.local','13800138004','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (6,'钱坤','e10adc3949ba59abbe56e057f20f883e','钱坤',2,'qiankun@demo.local','13800138005','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (7,'孙悦','e10adc3949ba59abbe56e057f20f883e','孙悦',2,'sunyue@demo.local','13800138006','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (8,'周宁','e10adc3949ba59abbe56e057f20f883e','周宁',2,'zhouning@demo.local','13800138007','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (9,'吴迪','e10adc3949ba59abbe56e057f20f883e','吴迪',2,'wudi@demo.local','13800138008','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (10,'郑佳','e10adc3949ba59abbe56e057f20f883e','郑佳',2,'zhengjia@demo.local','13800138009','2026-07-09 09:14:34','2026-07-09 09:14:34');
 
-INSERT IGNORE INTO project_info (id, owner_id, name, description, priority, status, start_date, end_date)
+INSERT IGNORE INTO `project_info` (`id`, `owner_id`, `name`, `description`, `priority`, `status`, `start_date`, `end_date`, `created_time`, `updated_time`)
 VALUES
-    (1, 2, 'Smart Campus Platform', 'Integrate devices, monitoring dashboards, and alert workflows.', 2, 1, '2026-07-01', '2026-08-15'),
-    (2, 3, 'Customer Service Mini App', 'Improve repair submission, work orders, and satisfaction callbacks.', 1, 0, '2026-07-05', '2026-08-20'),
-    (3, 4, 'Operations Data Hub', 'Unify reporting definitions and build management dashboards.', 2, 2, '2026-06-20', '2026-07-30');
+    (1,2,'智慧园区平台','推进园区设备接入、监控看板与告警闭环建设',2,1,'2026-07-01','2026-08-15','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (2,3,'客户服务小程序','优化客户报修、工单流转与满意度回访流程',1,0,'2026-07-05','2026-08-20','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (3,4,'运营数据中台','整理经营报表口径并建设统一数据看板',1,1,'2026-06-20','2026-07-30','2026-07-09 09:14:34','2026-07-09 15:45:38');
 
-INSERT IGNORE INTO task_info (id, creator_id, assignee_id, project_id, parent_id, title, description, priority, status, due_date, ai_suggestion)
+INSERT IGNORE INTO `task_info` (`id`, `creator_id`, `assignee_id`, `project_id`, `parent_id`, `title`, `description`, `priority`, `status`, `due_date`, `ai_suggestion`, `created_time`, `updated_time`)
 VALUES
-    (1, 2, 5, 1, NULL, 'Review device onboarding inventory', 'Collect device models, protocols, and responsible contacts for the first rollout.', 2, 1, '2026-07-12', 'Classify devices first, then confirm onboarding protocol details.'),
-    (2, 2, 6, 1, 1, 'Design monitoring homepage prototype', 'Draft layout, KPI cards, and alert list interactions for the homepage.', 1, 0, '2026-07-16', 'Prioritize real-time alerts and online device counts.'),
-    (3, 3, 7, 2, NULL, 'Map repair submission flow', 'Define the entry points, required fields, and state transitions for customer repair requests.', 1, 1, '2026-07-14', 'Draw the main happy path first, then cover exceptions.'),
-    (4, 3, 8, 2, 3, 'Implement work order dispatch API', 'Build automatic dispatch and manual reassignment endpoints for work orders.', 2, 0, '2026-07-18', 'Extract dispatch rules into configurable strategies.'),
-    (5, 4, 9, 3, NULL, 'Standardize operations KPIs', 'Define revenue, cost, conversion, and other core metric definitions.', 2, 2, '2026-07-08', 'Lock definitions before syncing the dashboard fields.'),
-    (6, 4, 10, 3, 5, 'Create weekly report dashboard template', 'Build management-facing weekly charts with reusable filters.', 0, 1, '2026-07-22', 'Keep project, department, and time dimensions reusable.');
+    (1,2,5,1,NULL,'完成设备接入清单梳理','整理首批需要接入平台的设备型号、协议和负责人',2,1,'2026-07-12','先统一设备分类，再逐项确认接入协议','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (2,2,6,1,1,'搭建园区监控首页原型','输出首页布局、核心指标卡片和告警列表交互稿',1,0,'2026-07-16','优先突出实时告警和在线设备数量','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (3,3,7,2,NULL,'梳理报修提交流程','明确客户报修入口、字段要求和状态流转节点',1,1,'2026-07-14','先画流程图，再补充异常分支','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (4,3,8,2,3,'实现工单分派接口','完成工单自动分派与人工改派接口开发',2,1,'2026-07-18','将分派规则抽离为可配置策略','2026-07-09 09:14:34','2026-07-09 14:44:53'),
+    (5,4,9,3,NULL,'统一经营指标口径','梳理收入、成本、转化率等核心指标定义',2,2,'2026-07-08','先确认口径文档，再同步看板字段','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (6,4,10,3,5,'生成周报看板模板','搭建管理层周报视图并预留筛选条件',0,1,'2026-07-22','模板中保留项目、部门和时间维度筛选','2026-07-09 09:14:34','2026-07-09 09:14:34');
 
-INSERT IGNORE INTO task_log (id, operator_id, task_id, progress_percent, content)
+INSERT IGNORE INTO `task_log` (`id`, `operator_id`, `task_id`, `progress_percent`, `content`, `created_time`, `updated_time`)
 VALUES
-    (1, 5, 1, 40, 'Finished the first batch inventory summary and now filling protocol fields.'),
-    (2, 7, 3, 65, 'Confirmed the main repair flow and waiting for review on exception handling.'),
-    (3, 9, 5, 100, 'Finalized KPI definitions and synced them with the visualization team.');
+    (1,5,1,40,'已完成首批设备清单汇总，正在补充协议字段','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (2,7,3,65,'报修流程主线已确认，异常流转待业务负责人复核','2026-07-09 09:14:34','2026-07-09 14:04:51'),
+    (3,9,5,100,'经营指标口径文档已定稿，并同步给可视化团队','2026-07-09 09:14:34','2026-07-09 14:04:51'),
+    (4,8,3,8,'123','2026-07-09 14:19:46','2026-07-09 14:36:09');
 
-INSERT IGNORE INTO task_summary (id, creator_id, project_id, task_id, summary_type, content)
+INSERT IGNORE INTO `task_summary` (`id`, `creator_id`, `project_id`, `task_id`, `summary_type`, `content`, `created_time`, `updated_time`)
 VALUES
-    (1, 2, 1, 1, 0, 'The smart campus project completed the device inventory review and moved the homepage prototype into design.'),
-    (2, 3, 2, 3, 0, 'The customer service mini app confirmed the repair flow and is now building the dispatch API.'),
-    (3, 4, 3, 5, 1, 'The operations data hub unified KPI definitions and is ready for dashboard delivery.');
+    (1,2,1,1,0,'智慧园区平台本周已完成设备摸排，监控首页原型进入设计阶段','2026-07-09 09:14:34','2026-07-09 09:14:34'),
+    (2,3,2,3,0,'客户服务小程序已确认报修主流程，工单分派接口正在开发','2026-07-09 09:14:34','2026-07-09 14:04:51'),
+    (3,4,3,5,1,'运营数据中台已完成核心指标口径统一，可进入周报看板建设阶段','2026-07-09 09:14:34','2026-07-09 14:04:51');
 
-UPDATE task_log
-SET task_id = CASE id
-    WHEN 2 THEN 3
-    WHEN 3 THEN 5
-    ELSE task_id
-END
-WHERE id IN (2, 3);
+INSERT IGNORE INTO `operate_log` (`id`, `operate_emp_id`, `operate_time`, `class_name`, `method_name`, `method_params`, `return_value`, `cost_time`, `operate_emp_name`)
+VALUES
+    (1,4,'2026-07-09 20:07:38','TaskSummaryController','add','[{\"content\":\"123\",\"createdTime\":null,\"creatorId\":4,\"id\":4,\"projectId\":3,\"summaryType\":0,\"summaryTypeName\":\"阶段总结\",\"taskId\":5,\"updatedTime\":null}]','{\"code\":200,\"data\":{\"content\":\"123\",\"createdTime\":null,\"creatorId\":4,\"id\":4,\"projectId\":3,\"summaryType\":0,\"summaryTypeName\":\"阶段总结\",\"taskId\":5,\"updatedTime\":null},\"message\":\"success\"}',21,'王浩'),
+    (2,4,'2026-07-09 20:10:32','TaskSummaryController','deleteById','[Ljava.lang.Object;@291fdf7c','{\"code\":200,\"data\":true,\"message\":\"success\"}',11,'王浩'),
+    (3,4,'2026-07-10 16:19:10','ProjectInfoController','add','[{\"createdTime\":null,\"description\":\"12\",\"endDate\":\"2026-07-17\",\"id\":4,\"name\":\"12\",\"ownerId\":4,\"priority\":1,\"priorityName\":\"中\",\"startDate\":\"2026-07-04\",\"status\":1,\"statusName\":\"进行中\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"createdTime\":null,\"description\":\"12\",\"endDate\":\"2026-07-17\",\"id\":4,\"name\":\"12\",\"ownerId\":4,\"priority\":1,\"priorityName\":\"中\",\"startDate\":\"2026-07-04\",\"status\":1,\"statusName\":\"进行中\",\"updatedTime\":null},\"message\":\"success\"}',25,'王浩'),
+    (4,4,'2026-07-10 16:19:20','ProjectInfoController','deleteById','[Ljava.lang.Object;@703cf3b2','{\"code\":200,\"data\":true,\"message\":\"success\"}',10,'王浩'),
+    (5,4,'2026-07-10 16:44:51','ProjectInfoController','add','[{\"createdTime\":null,\"description\":\"123\",\"endDate\":\"2026-07-17\",\"id\":5,\"name\":\"123\",\"ownerId\":4,\"priority\":2,\"priorityName\":\"高\",\"startDate\":\"2026-07-02\",\"status\":0,\"statusName\":\"未开始\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"createdTime\":null,\"description\":\"123\",\"endDate\":\"2026-07-17\",\"id\":5,\"name\":\"123\",\"ownerId\":4,\"priority\":2,\"priorityName\":\"高\",\"startDate\":\"2026-07-02\",\"status\":0,\"statusName\":\"未开始\",\"updatedTime\":null},\"message\":\"success\"}',8,'王浩'),
+    (6,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":9,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":8,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 5\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":9,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":8,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 5\",\"updatedTime\":null},\"message\":\"success\"}',12,'王浩'),
+    (7,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":7,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":9,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 4\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":7,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":9,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 4\",\"updatedTime\":null},\"message\":\"success\"}',12,'王浩'),
+    (8,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":5,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":10,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 6\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":5,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":10,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 6\",\"updatedTime\":null},\"message\":\"success\"}',14,'王浩'),
+    (9,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":4,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":11,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 1\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":4,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":11,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 1\",\"updatedTime\":null},\"message\":\"success\"}',15,'王浩'),
+    (10,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":9,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":7,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 3\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":9,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":7,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 3\",\"updatedTime\":null},\"message\":\"success\"}',14,'王浩'),
+    (11,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":8,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":12,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 2\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":8,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":12,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 2\",\"updatedTime\":null},\"message\":\"success\"}',15,'王浩'),
+    (12,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":6,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":13,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 7\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":6,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":13,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 7\",\"updatedTime\":null},\"message\":\"success\"}',10,'王浩'),
+    (13,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":10,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":14,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 8\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":10,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":14,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 8\",\"updatedTime\":null},\"message\":\"success\"}',8,'王浩'),
+    (14,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":4,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":16,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 9\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":4,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":16,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 9\",\"updatedTime\":null},\"message\":\"success\"}',6,'王浩'),
+    (15,4,'2026-07-10 16:45:12','TaskInfoController','add','[{\"aiSuggestion\":\"\",\"assigneeId\":4,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":15,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 10\",\"updatedTime\":null}]','{\"code\":200,\"data\":{\"aiSuggestion\":\"\",\"assigneeId\":4,\"createdTime\":null,\"creatorId\":4,\"description\":\"\",\"dueDate\":\"2026-07-17\",\"id\":15,\"parentId\":null,\"priority\":1,\"priorityName\":\"中\",\"projectId\":5,\"status\":0,\"statusName\":\"未开始\",\"title\":\"拆解任务 10\",\"updatedTime\":null},\"message\":\"success\"}',6,'王浩'),
+    (16,4,'2026-07-10 16:55:36','TaskLogController','add','[{\"content\":\"123\",\"createdTime\":null,\"id\":7,\"operatorId\":4,\"progressPercent\":0,\"taskId\":15,\"updatedTime\":null}]','{\"code\":200,\"data\":{\"content\":\"123\",\"createdTime\":null,\"id\":7,\"operatorId\":4,\"progressPercent\":0,\"taskId\":15,\"updatedTime\":null},\"message\":\"success\"}',6,'王浩'),
+    (17,4,'2026-07-10 16:55:43','TaskLogController','deleteById','[Ljava.lang.Object;@30b86f63','{\"code\":200,\"data\":true,\"message\":\"success\"}',7,'王浩'),
+    (18,4,'2026-07-10 16:55:55','TaskInfoController','deleteById','[Ljava.lang.Object;@7d983875','{\"code\":200,\"data\":true,\"message\":\"success\"}',20,'王浩'),
+    (19,4,'2026-07-10 16:57:54','ProjectInfoController','deleteById','[Ljava.lang.Object;@26cd01f9','{\"code\":200,\"data\":true,\"message\":\"success\"}',6,'王浩'),
+    (20,4,'2026-07-10 17:01:27','TaskSummaryController','add','[{\"content\":\"123\",\"createdTime\":null,\"creatorId\":4,\"id\":5,\"projectId\":3,\"summaryType\":0,\"summaryTypeName\":\"阶段总结\",\"taskId\":6,\"updatedTime\":null}]','{\"code\":200,\"data\":{\"content\":\"123\",\"createdTime\":null,\"creatorId\":4,\"id\":5,\"projectId\":3,\"summaryType\":0,\"summaryTypeName\":\"阶段总结\",\"taskId\":6,\"updatedTime\":null},\"message\":\"success\"}',8,'王浩'),
+    (21,4,'2026-07-10 17:01:37','TaskSummaryController','deleteById','[Ljava.lang.Object;@6d818b0c','{\"code\":200,\"data\":true,\"message\":\"success\"}',12,'王浩');
 
-UPDATE task_summary
-SET task_id = CASE id
-    WHEN 2 THEN 3
-    WHEN 3 THEN 5
-    ELSE task_id
-END
-WHERE id IN (2, 3);

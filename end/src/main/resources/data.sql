@@ -1,4 +1,4 @@
-﻿INSERT IGNORE INTO `sys_user` (`id`, `username`, `password`, `real_name`, `role`, `email`, `phone`, `created_time`, `updated_time`)
+INSERT IGNORE INTO `sys_user` (`id`, `username`, `password`, `real_name`, `role`, `email`, `phone`, `created_time`, `updated_time`)
 VALUES
     (1,'系统管理员','e10adc3949ba59abbe56e057f20f883e','系统管理员',0,'guanliyuan@demo.local','13800138000','2026-07-09 09:14:34','2026-07-09 09:14:34'),
     (2,'张晨','e10adc3949ba59abbe56e057f20f883e','张晨',1,'zhangchen@demo.local','13800138001','2026-07-09 09:14:34','2026-07-09 09:14:34'),

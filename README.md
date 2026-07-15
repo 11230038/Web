@@ -27,3 +27,4 @@ nginx.exe -s stop
 数据库密码是123456，架构名是mini_semester,端口是3306
 ```
 
+Nginx需要根据实际情况配置temp

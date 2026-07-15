@@ -1,30 +1,37 @@
-1. 启动后端服务：
+# 项目启动说明
 
-```bash
-java -jar endjar
+## 1. 启动后端
+
+后端端口：`8080`
+
+```powershell
+java -jar end.jar
 ```
 
-2. 启动前端 Nginx：
-
-```bash
-cd nginx-front
-start nginx.exe
-```
-
-3. 浏览器访问：
+访问地址：
 
 ```text
-localhost:5173
+http://localhost:8080
 ```
 
-如需停止前端 Nginx：
+## 2. 启动前端
 
-```bash
-cd nginx-front
-nginx.exe -s stop
+前端端口：`5173`
 
-
-数据库密码是123456，架构名是mini_semester,端口是3306
+```powershell
+npx.cmd serve dist -l 5173
 ```
 
-Nginx需要根据实际情况配置temp
+如果提示是否安装 `serve`，输入：
+
+```text
+y
+```
+
+访问地址：
+
+```text
+http://localhost:5173
+```
+
+
